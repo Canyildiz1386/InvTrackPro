@@ -16,11 +16,15 @@ class MainApp(ctk.CTk):
         self.title("🔐 Inventory Management System")
         self.geometry("1080x720")
         self.configure(bg="#1A1A1D")
-        # self.resizable(False, False)
         self.image_path = None
         self.sku_counter = self.get_next_sku()
         self.inventory = list(items_collection.find())
+        self.inventory_frame = None
+        self.tree = None
+        self.total_pieces_label = None
+        self.total_cost_label = None
         self.show_login_screen()
+
 
     def get_next_sku(self):
         last_item = items_collection.find_one(sort=[("sku", -1)])
@@ -78,7 +82,7 @@ class MainApp(ctk.CTk):
         name_entry.pack(pady=10)
         username_entry = ctk.CTkEntry(self, placeholder_text="📛 Username", width=300)
         username_entry.pack(pady=10)
-        password_entry = ctk.CTk.CTkEntry(self, placeholder_text="🔑 Password", show="*", width=300)
+        password_entry = ctk.CTkEntry(self, placeholder_text="🔑 Password", show="*", width=300)
         password_entry.pack(pady=10)
 
         def register():
@@ -102,44 +106,29 @@ class MainApp(ctk.CTk):
         self.clear_widgets()
         header = ctk.CTkLabel(self, text="🏠 Inventory System", font=("Arial", 36, "bold"), text_color="white")
         header.pack(pady=20)
-        
-        # Create a frame for search and filter bar
+
         search_filter_frame = ctk.CTkFrame(self, fg_color="#2C2F33", corner_radius=10)
         search_filter_frame.pack(pady=10, padx=20, fill="x")
 
-        # Search entry
         search_entry = ctk.CTkEntry(search_filter_frame, placeholder_text="🔍 Search by Name/SKU", width=400)
         search_entry.grid(row=0, column=0, padx=10, pady=10)
 
-        # Filter by category
-        filter_category = ctk.CTkComboBox(search_filter_frame, width=200, values=["All", "Rings", "Necklaces", "Bracelets", "Watches"])
+        filter_category = ctk.CTkComboBox(
+            search_filter_frame,
+            width=200,
+            values=["All", "Rings", "Necklaces", "Bracelets", "Watches"],
+            command=self.live_search
+        )
+        filter_category.set("All")
         filter_category.grid(row=0, column=1, padx=10, pady=10)
 
-        # Live search function
-        def live_search(event=None):
-            search_query = search_entry.get()
-            category = filter_category.get()
-            query = {}
-            
-            if search_query:
-                query["$or"] = [
-                    {"sku": int(search_query)} if search_query.isdigit() else {},
-                    {"product_name": {"$regex": search_query, "$options": "i"}}
-                ]
-            if category != "All":
-                query["category"] = category
-            
-            self.inventory = list(items_collection.find(query))
-            self.create_inventory_overview()
+        self.search_entry = search_entry
+        self.filter_category = filter_category
 
-
-        search_entry.bind("<KeyRelease>", live_search)
-        filter_category.bind("<<ComboboxSelected>>", live_search)
-
-        self.create_inventory_overview()
+        search_entry.bind("<KeyRelease>", self.live_search)
 
         button_frame = ctk.CTkFrame(self, fg_color="#2C2F33", corner_radius=10)
-        button_frame.pack(pady=30, padx=20, fill="x")
+        button_frame.pack(pady=10, padx=20, fill="x")
 
         add_item_btn = ctk.CTkButton(button_frame, text="➕ Add New Item", corner_radius=10, command=self.add_item_screen, width=200, height=40)
         add_item_btn.grid(row=0, column=0, padx=20, pady=10)
@@ -150,43 +139,84 @@ class MainApp(ctk.CTk):
         item_sold_btn = ctk.CTkButton(button_frame, text="✔ Mark Item as Sold", corner_radius=10, command=self.item_sold_screen, width=200, height=40)
         item_sold_btn.grid(row=0, column=2, padx=20, pady=10)
 
+        self.inventory_frame = ctk.CTkFrame(self, fg_color="#2C2F33", corner_radius=10)
+        self.inventory_frame.pack(pady=20, padx=20, fill="both", expand=True)
+
+        self.create_inventory_overview()
+
+    def live_search(self, *args):
+        search_query = self.search_entry.get()
+        category = self.filter_category.get()
+        query = {}
+        if search_query:
+            if search_query.isdigit():
+                query["sku"] = int(search_query)
+            else:
+                query["product_name"] = {"$regex": search_query, "$options": "i"}
+        if category != "All":
+            query["category"] = category
+        self.inventory = list(items_collection.find(query))
+        self.create_inventory_overview()
+
     def create_inventory_overview(self):
-        inventory_frame = ctk.CTkFrame(self, fg_color="#2C2F33", corner_radius=10)
-        inventory_frame.pack(pady=20, padx=20, fill="both", expand=True)
         total_pieces = sum(item['number_of_pcs'] for item in self.inventory)
         total_cost = sum(item['our_cost'] * item['number_of_pcs'] for item in self.inventory)
-        total_pieces_label = ctk.CTkLabel(inventory_frame, text=f"📦 Total Pieces: {total_pieces}", text_color="white", font=("Arial", 18))
-        total_pieces_label.pack(pady=10)
-        total_cost_label = ctk.CTkLabel(inventory_frame, text=f"💲 Total Cost: ${total_cost:.2f}", text_color="white", font=("Arial", 18))
-        total_cost_label.pack(pady=10)
-        self.show_inventory_table(inventory_frame)
+
+        if self.total_pieces_label and self.total_pieces_label.winfo_exists():
+            self.total_pieces_label.configure(text=f"📦 Total Pieces: {total_pieces}")
+        else:
+            self.total_pieces_label = ctk.CTkLabel(
+                self.inventory_frame,
+                text=f"📦 Total Pieces: {total_pieces}",
+                text_color="white",
+                font=("Arial", 18)
+            )
+            self.total_pieces_label.pack(pady=10)
+
+        if self.total_cost_label and self.total_cost_label.winfo_exists():
+            self.total_cost_label.configure(text=f"💲 Total Cost: ${total_cost:.2f}")
+        else:
+            self.total_cost_label = ctk.CTkLabel(
+                self.inventory_frame,
+                text=f"💲 Total Cost: ${total_cost:.2f}",
+                text_color="white",
+                font=("Arial", 18)
+            )
+            self.total_cost_label.pack(pady=10)
+
+        self.show_inventory_table(self.inventory_frame)
+
+
 
     def show_inventory_table(self, parent):
-        tree_scroll = ttk.Scrollbar(parent)
-        tree_scroll.pack(side="right", fill="y")
-        tree = ttk.Treeview(parent, columns=("Item", "SKU", "Category", "Cost", "Stock"), show="headings", yscrollcommand=tree_scroll.set)
-        tree.heading("Item", text="🛍️ Item")
-        tree.heading("SKU", text="📦 SKU")
-        tree.heading("Category", text="🏷️ Category")
-        tree.heading("Cost", text="💰 Cost")
-        tree.heading("Stock", text="📊 Stock")
-        tree.column("Item", anchor="w", width=150)
-        tree.column("SKU", anchor="center", width=100)
-        tree.column("Category", anchor="center", width=100)
-        tree.column("Cost", anchor="center", width=100)
-        tree.column("Stock", anchor="center", width=100)
+        if hasattr(self, 'tree') and self.tree:
+            self.tree.delete(*self.tree.get_children())
+        else:
+            tree_scroll = ttk.Scrollbar(parent)
+            tree_scroll.pack(side="right", fill="y")
+            self.tree = ttk.Treeview(parent, columns=("Item", "SKU", "Category", "Cost", "Stock"), show="headings", yscrollcommand=tree_scroll.set)
+            self.tree.heading("Item", text="🛍️ Item")
+            self.tree.heading("SKU", text="📦 SKU")
+            self.tree.heading("Category", text="🏷️ Category")
+            self.tree.heading("Cost", text="💰 Cost")
+            self.tree.heading("Stock", text="📊 Stock")
+            self.tree.column("Item", anchor="w", width=150)
+            self.tree.column("SKU", anchor="center", width=100)
+            self.tree.column("Category", anchor="center", width=100)
+            self.tree.column("Cost", anchor="center", width=100)
+            self.tree.column("Stock", anchor="center", width=100)
+            self.tree.pack(fill="both", expand=True, padx=20, pady=10)
+            tree_scroll.config(command=self.tree.yview)
+            self.tree.bind("<Double-1>", lambda e: self.on_item_double_click(self.tree))
+
         for item in self.inventory:
-            tree.insert("", "end", values=(
+            self.tree.insert("", "end", values=(
                 item.get("product_name", ""),
                 item.get("sku", ""),
                 item.get("category", ""),
                 f"${item.get('our_cost', 0):.2f}",
                 item.get("number_of_pcs", 0),
             ))
-        tree.pack(fill="both", expand=True, padx=20, pady=10)
-        tree_scroll.config(command=tree.yview)
-        tree.bind("<Double-1>", lambda e: self.on_item_double_click(tree))
-
 
     def on_item_double_click(self, tree):
         selected_item = tree.item(tree.selection()[0], "values")
@@ -280,13 +310,16 @@ class MainApp(ctk.CTk):
         def search_item():
             query = search_var.get()
             try:
-                item = items_collection.find_one({"$or": [{"sku": int(query)}, {"product_name": query}]})
+                if query.isdigit():
+                    item = items_collection.find_one({"sku": int(query)})
+                else:
+                    item = items_collection.find_one({"product_name": {"$regex": f"^{query}$", "$options": "i"}})
                 if item:
                     self.show_item_sold_details(item)
                 else:
                     messagebox.showerror("Error", "Item not found.")
-            except:
-                messagebox.showerror("Error", "Invalid search input. Enter valid SKU or Item Name.")
+            except Exception as e:
+                messagebox.showerror("Error", f"Invalid search input. {e}")
 
         search_btn = ctk.CTkButton(self, text="🔍 Search Item", corner_radius=10, command=search_item, width=200, height=40)
         search_btn.pack(pady=10)
@@ -335,13 +368,16 @@ class MainApp(ctk.CTk):
         def search_item():
             query = search_var.get()
             try:
-                item = items_collection.find_one({"$or": [{"sku": int(query)}, {"product_name": query}]})
+                if query.isdigit():
+                    item = items_collection.find_one({"sku": int(query)})
+                else:
+                    item = items_collection.find_one({"product_name": {"$regex": f"^{query}$", "$options": "i"}})
                 if item:
                     self.show_add_pieces_screen(item)
                 else:
                     messagebox.showerror("Error", "Item not found.")
-            except:
-                messagebox.showerror("Error", "Invalid search input. Enter valid SKU or Item Name.")
+            except Exception as e:
+                messagebox.showerror("Error", f"Invalid search input. {e}")
 
         search_btn = ctk.CTkButton(self, text="🔍 Search Item", corner_radius=10, command=search_item, width=200, height=40)
         search_btn.pack(pady=10)
@@ -406,6 +442,12 @@ class MainApp(ctk.CTk):
     def clear_widgets(self):
         for widget in self.winfo_children():
             widget.destroy()
+        self.tree = None
+        self.inventory_frame = None
+        self.total_pieces_label = None
+        self.total_cost_label = None
+
+
 
 if __name__ == "__main__":
     ctk.set_appearance_mode("Dark")
