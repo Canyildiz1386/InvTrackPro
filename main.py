@@ -1,181 +1,334 @@
 import customtkinter as ctk
-from tkinter import filedialog, messagebox
+from tkinter import filedialog, ttk, messagebox
 from PIL import Image, ImageTk
 import os
-import pymongo
+from pymongo import MongoClient
 
-# MongoDB connection setup
-client = pymongo.MongoClient("mongodb://localhost:27017/")
-db = client["InventoryDB"]
-inventory_collection = db["InventoryItems"]
+client = MongoClient('mongodb://localhost:27017/')
+db = client['inventory_db']
+items_collection = db['items']
 
-class MainApp:
-    def __init__(self, root):
-        self.root = root
-        self.root.geometry("1200x800")
-        self.root.title("Modern Inventory System")
-        self.root.configure(bg="#212121")
+class MainApp(ctk.CTk):
+    def __init__(self):
+        super().__init__()
 
-        ctk.set_appearance_mode("dark")
-        ctk.set_default_color_theme("dark-blue")
+        self.title("Inventory Management System")
+        self.geometry("1080x720")
+        self.configure(bg="#1A1A1D")
+        self.resizable(False, False)  # Make the app non-resizable
 
+        self.image_path = None
+        self.sku_counter = self.get_next_sku()
+        self.inventory = list(items_collection.find())
         self.setup_home_screen()
+
+    def get_next_sku(self):
+        last_item = items_collection.find_one(sort=[("sku", -1)])
+        return last_item['sku'] + 1 if last_item else 100001
 
     def setup_home_screen(self):
-        self.clear_screen()
+        self.clear_widgets()
+        header = ctk.CTkLabel(self, text="Inventory System", font=("Arial", 36, "bold"), text_color="white")
+        header.pack(pady=20)
 
-        self.header = ctk.CTkLabel(self.root, text="Inventory Management", font=ctk.CTkFont(size=28, weight="bold"))
-        self.header.pack(pady=20)
+        self.create_inventory_overview()
 
-        total_pieces = self.calculate_total_pieces()
-        self.total_pieces_label = ctk.CTkLabel(self.root, text=f"Total Pieces: {total_pieces}", font=ctk.CTkFont(size=16))
-        self.total_pieces_label.pack(pady=10)
+        button_frame = ctk.CTkFrame(self, fg_color="#2C2F33", corner_radius=10)
+        button_frame.pack(pady=30, padx=20, fill="x")
 
-        total_cost = self.calculate_total_cost()
-        self.total_cost_label = ctk.CTkLabel(self.root, text=f"Total Cost: ${total_cost:,.2f}", font=ctk.CTkFont(size=16))
-        self.total_cost_label.pack(pady=10)
+        add_item_btn = ctk.CTkButton(button_frame, text="➕ Add New Item", corner_radius=10, command=self.add_item_screen, width=200, height=40)
+        add_item_btn.grid(row=0, column=0, padx=20, pady=10)
 
-        self.filter_label = ctk.CTkLabel(self.root, text="Filter Items By:", font=ctk.CTkFont(size=14))
-        self.filter_label.pack(pady=5)
+        add_quantity_btn = ctk.CTkButton(button_frame, text="📦 Add Quantity", corner_radius=10, command=self.add_quantity_screen, width=200, height=40)
+        add_quantity_btn.grid(row=0, column=1, padx=20, pady=10)
 
-        self.filter_var = ctk.StringVar()
-        self.filter_options = ctk.CTkOptionMenu(self.root, variable=self.filter_var, values=['Most Sold', 'Least Quantity', 'In Stock', 'Out of Stock'], command=self.update_inventory_view)
-        self.filter_options.pack(pady=5)
+        item_sold_btn = ctk.CTkButton(button_frame, text="✔ Mark Item as Sold", corner_radius=10, command=self.item_sold_screen, width=200, height=40)
+        item_sold_btn.grid(row=0, column=2, padx=20, pady=10)
 
-        self.search_var = ctk.StringVar()
-        self.search_entry = ctk.CTkEntry(self.root, textvariable=self.search_var, placeholder_text="Search...", width=400, height=40)
-        self.search_entry.pack(pady=10)
-        self.search_var.trace_add("write", self.update_inventory_view)
+    def create_inventory_overview(self):
+        inventory_frame = ctk.CTkFrame(self, fg_color="#2C2F33", corner_radius=10)
+        inventory_frame.pack(pady=20, padx=20, fill="both", expand=True)
 
-        self.button_frame = ctk.CTkFrame(self.root)
-        self.button_frame.pack(pady=10)
+        total_pieces = sum(item['number_of_pcs'] for item in self.inventory)
+        total_cost = sum(item['our_cost'] * item['number_of_pcs'] for item in self.inventory)
 
-        self.new_item_button = ctk.CTkButton(self.button_frame, text="New Item", command=self.new_item_screen, width=200)
-        self.new_item_button.grid(row=0, column=0, padx=10)
+        total_pieces_label = ctk.CTkLabel(inventory_frame, text=f"Total Pieces: {total_pieces}", text_color="white", font=("Arial", 18))
+        total_pieces_label.pack(pady=10)
 
-        self.update_button = ctk.CTkButton(self.button_frame, text="Update Item", command=self.add_quantity_screen, width=200)
-        self.update_button.grid(row=0, column=1, padx=10)
+        total_cost_label = ctk.CTkLabel(inventory_frame, text=f"Total Cost: ${total_cost:.2f}", text_color="white", font=("Arial", 18))
+        total_cost_label.pack(pady=10)
 
-        self.sold_button = ctk.CTkButton(self.button_frame, text="Mark as Sold", command=self.item_sold_screen, width=200)
-        self.sold_button.grid(row=0, column=2, padx=10)
+        self.show_inventory_table(inventory_frame)
 
-        self.inventory_frame = ctk.CTkFrame(self.root)
-        self.inventory_frame.pack(pady=20, fill="both", expand=True)
-        self.display_inventory()
+    def show_inventory_table(self, parent):
+        tree_scroll = ttk.Scrollbar(parent)
+        tree_scroll.pack(side="right", fill="y")
 
-    def clear_screen(self):
-        for widget in self.root.winfo_children():
-            widget.destroy()
+        tree = ttk.Treeview(parent, columns=("Item", "SKU", "Category", "Cost", "Stock"), show="headings", yscrollcommand=tree_scroll.set)
 
-    def calculate_total_pieces(self):
-        return sum(item.get("number_of_pcs", 0) for item in inventory_collection.find())
+        tree.heading("Item", text="Item")
+        tree.heading("SKU", text="SKU")
+        tree.heading("Category", text="Category")
+        tree.heading("Cost", text="Cost")
+        tree.heading("Stock", text="Stock")
 
-    def calculate_total_cost(self):
-        return sum(item.get("our_cost", 0) * item.get("number_of_pcs", 0) for item in inventory_collection.find())
+        tree.column("Item", anchor="w", width=150)
+        tree.column("SKU", anchor="center", width=100)
+        tree.column("Category", anchor="center", width=100)
+        tree.column("Cost", anchor="center", width=100)
+        tree.column("Stock", anchor="center", width=100)
 
-    def display_inventory(self):
-        self.clear_inventory_view()
+        for item in self.inventory:
+            tree.insert("", "end", values=(
+                item.get("product_name", ""),
+                item.get("sku", ""),
+                item.get("category", ""),
+                f"${item.get('our_cost', 0):.2f}",
+                item.get("number_of_pcs", 0),
+            ))
 
-        self.inventory_list = ctk.CTkScrollableFrame(self.inventory_frame, width=1000, height=400)
-        self.inventory_list.pack(fill="both", expand=True)
+        tree.pack(fill="both", expand=True, padx=20, pady=10)  # Add padding around the table
+        tree_scroll.config(command=tree.yview)
+        tree.bind("<Double-1>", lambda e: self.on_item_double_click(tree))
 
-        for item in inventory_collection.find():
-            self.add_inventory_row(item)
+        # Disable resizing of columns
+        for col in tree["columns"]:
+            tree.column(col, stretch=False)
 
-    def clear_inventory_view(self):
-        for widget in self.inventory_frame.winfo_children():
-            widget.destroy()
+    def on_item_double_click(self, tree):
+        selected_item = tree.item(tree.selection()[0], "values")
+        sku = selected_item[1]
+        item = items_collection.find_one({"sku": int(sku)})
+        self.edit_item_screen(item)
 
-    def add_inventory_row(self, item):
-        item_row = ctk.CTkFrame(self.inventory_list)
-        item_row.pack(fill="x", pady=2)
+    def add_item_screen(self):
+        self.clear_widgets()
+        header = ctk.CTkLabel(self, text="Add New Inventory Item", font=("Arial", 30, "bold"), text_color="white")
+        header.pack(pady=20)
 
-        sku_label = ctk.CTkLabel(item_row, text=item['sku'], width=100, anchor="w")
-        sku_label.grid(row=0, column=0, padx=10)
+        self.create_item_form(self.save_new_item)
 
-        name_label = ctk.CTkLabel(item_row, text=item['product_name'], width=200, anchor="w")
-        name_label.grid(row=0, column=1, padx=10)
+    def create_item_form(self, save_command, item=None):
+        form_frame = ctk.CTkFrame(self, fg_color="#2C2F33", corner_radius=10)
+        form_frame.pack(pady=20, padx=20, fill="both", expand=True)
 
-        pcs_label = ctk.CTkLabel(item_row, text=str(item['number_of_pcs']), width=100, anchor="center")
-        pcs_label.grid(row=0, column=2, padx=10)
+        img_label = ctk.CTkLabel(form_frame, text="No Image Uploaded", text_color="white", width=200)
+        img_label.grid(row=0, column=1, padx=20, pady=10)
+        img_btn = ctk.CTkButton(form_frame, text="Upload Image", corner_radius=10, command=lambda: self.upload_image(img_label), width=200)
+        img_btn.grid(row=0, column=0, padx=20, pady=10)
 
-        cost_label = ctk.CTkLabel(item_row, text=f"${item['our_cost']:,.2f}", width=100, anchor="e")
-        cost_label.grid(row=0, column=3, padx=10)
+        form_fields = [
+            ("Item Name", ctk.CTkEntry(form_frame, width=300)),
+            ("SKU", ctk.CTkEntry(form_frame, width=300, state='disabled')),
+            ("Category", ctk.CTkComboBox(form_frame, width=300, values=["Rings", "Necklaces", "Bracelets", "Watches"])),
+            ("Grams", ctk.CTkEntry(form_frame, width=300)),
+            ("CTW Diamond", ctk.CTkEntry(form_frame, width=300)),
+            ("Number of Pieces", ctk.CTkEntry(form_frame, width=300)),
+            ("Reference Cost", ctk.CTkEntry(form_frame, width=300)),
+            ("Our Cost", ctk.CTkEntry(form_frame, width=300)),
+        ]
 
-        sold_label = ctk.CTkLabel(item_row, text=str(item.get('pieces_sold', 0)), width=100, anchor="e")
-        sold_label.grid(row=0, column=4, padx=10)
+        self.form_entries = {}
+        for i, (label_text, entry) in enumerate(form_fields):
+            ctk.CTkLabel(form_frame, text=label_text, text_color="white", font=("Arial", 14)).grid(row=i + 1, column=0, padx=20, pady=10, sticky="e")
+            entry.grid(row=i + 1, column=1, padx=20, pady=10, sticky="w")
+            self.form_entries[label_text] = entry
 
-    def new_item_screen(self):
-        self.clear_screen()
+        self.form_entries["SKU"].insert(0, str(self.sku_counter))
 
-        self.header = ctk.CTkLabel(self.root, text="Add New Item", font=ctk.CTkFont(size=24, weight="bold"))
-        self.header.pack(pady=20)
+        save_btn = ctk.CTkButton(self, text="Save Item", corner_radius=10, command=save_command, width=200, height=40)
+        save_btn.pack(pady=20)
 
-        self.form_frame = ctk.CTkFrame(self.root)
-        self.form_frame.pack(pady=20)
+        back_btn = ctk.CTkButton(self, text="Back to Home", corner_radius=10, command=self.setup_home_screen, width=200, height=40)
+        back_btn.pack(pady=10)
 
-        self.sku_label = ctk.CTkLabel(self.form_frame, text="SKU:")
-        self.sku_label.grid(row=0, column=0, padx=10, pady=10, sticky="e")
+    def upload_image(self, label):
+        file_path = filedialog.askopenfilename()
+        if file_path:
+            self.image_path = file_path
+            img = Image.open(file_path)
+            img.thumbnail((100, 100))
+            img_tk = ImageTk.PhotoImage(img)
+            label.configure(image=img_tk)
+            label.image = img_tk
 
-        self.sku_entry = ctk.CTkEntry(self.form_frame)
-        self.sku_entry.grid(row=0, column=1, padx=10, pady=10)
+    def save_new_item(self):
+        try:
+            new_item = {
+                "product_name": self.form_entries["Item Name"].get(),
+                "sku": self.sku_counter,
+                "category": self.form_entries["Category"].get(),
+                "grams": float(self.form_entries["Grams"].get()),
+                "ctw_diamond": float(self.form_entries["CTW Diamond"].get()),
+                "number_of_pcs": int(self.form_entries["Number of Pieces"].get()),
+                "reference_cost": float(self.form_entries["Reference Cost"].get()),
+                "our_cost": float(self.form_entries["Our Cost"].get()),
+                "image_path": self.image_path,
+            }
 
-        self.name_label = ctk.CTkLabel(self.form_frame, text="Product Name:")
-        self.name_label.grid(row=1, column=0, padx=10, pady=10, sticky="e")
+            items_collection.insert_one(new_item)
+            self.sku_counter += 1
+            self.inventory.append(new_item)
+            messagebox.showinfo("Success", "Item added successfully!")
+            self.setup_home_screen()
 
-        self.name_entry = ctk.CTkEntry(self.form_frame)
-        self.name_entry.grid(row=1, column=1, padx=10, pady=10)
-
-        self.category_label = ctk.CTkLabel(self.form_frame, text="Category:")
-        self.category_label.grid(row=2, column=0, padx=10, pady=10, sticky="e")
-
-        self.category_var = ctk.StringVar()
-        self.category_menu = ctk.CTkOptionMenu(self.form_frame, variable=self.category_var, values=['Rings', 'Necklaces', 'Bracelets', 'Earrings', 'Watches'])
-        self.category_menu.grid(row=2, column=1, padx=10, pady=10)
-
-        self.cost_label = ctk.CTkLabel(self.form_frame, text="Cost:")
-        self.cost_label.grid(row=3, column=0, padx=10, pady=10, sticky="e")
-
-        self.cost_entry = ctk.CTkEntry(self.form_frame)
-        self.cost_entry.grid(row=3, column=1, padx=10, pady=10)
-
-        self.pcs_label = ctk.CTkLabel(self.form_frame, text="Number of Pieces:")
-        self.pcs_label.grid(row=4, column=0, padx=10, pady=10, sticky="e")
-
-        self.pcs_entry = ctk.CTkEntry(self.form_frame)
-        self.pcs_entry.grid(row=4, column=1, padx=10, pady=10)
-
-        self.save_button = ctk.CTkButton(self.root, text="Save Item", command=self.save_item)
-        self.save_button.pack(pady=20)
-
-    def save_item(self):
-        sku = self.sku_entry.get()
-        product_name = self.name_entry.get()
-        category = self.category_var.get()
-        cost = float(self.cost_entry.get())
-        pcs = int(self.pcs_entry.get())
-
-        item = {
-            'sku': sku,
-            'product_name': product_name,
-            'category': category,
-            'our_cost': cost,
-            'number_of_pcs': pcs,
-            'pieces_sold': 0
-        }
-        inventory_collection.insert_one(item)
-        self.setup_home_screen()
-
-    def add_quantity_screen(self):
-        pass
+        except ValueError as e:
+            messagebox.showerror("Error", f"Invalid input: {e}")
 
     def item_sold_screen(self):
-        pass
+        self.clear_widgets()
+        header = ctk.CTkLabel(self, text="Mark Item as Sold", font=("Arial", 30, "bold"), text_color="white")
+        header.pack(pady=20)
 
-    def update_inventory_view(self, *args):
-        pass
+        search_var = ctk.CTkEntry(self, width=400, placeholder_text="Enter SKU or Item Name")
+        search_var.pack(pady=10)
+
+        def search_item():
+            query = search_var.get()
+            try:
+                item = items_collection.find_one({"$or": [{"sku": int(query)}, {"product_name": query}]})
+                if item:
+                    self.show_item_sold_details(item)
+                else:
+                    messagebox.showerror("Error", "Item not found.")
+            except:
+                messagebox.showerror("Error", "Invalid search input. Enter valid SKU or Item Name.")
+
+        search_btn = ctk.CTkButton(self, text="Search Item", corner_radius=10, command=search_item, width=200, height=40)
+        search_btn.pack(pady=10)
+
+        back_btn = ctk.CTkButton(self, text="Back to Home", corner_radius=10, command=self.setup_home_screen, width=200, height=40)
+        back_btn.pack(pady=10)
+
+    def show_item_sold_details(self, item):
+        self.clear_widgets()
+        header = ctk.CTkLabel(self, text=f"Item: {item['product_name']} (SKU: {item['sku']})", font=("Arial", 24, "bold"), text_color="white")
+        header.pack(pady=20)
+
+        if item.get("image_path") and os.path.exists(item["image_path"]):
+            img = Image.open(item["image_path"])
+            img.thumbnail((200, 200))
+            img_tk = ImageTk.PhotoImage(img)
+            img_label = ctk.CTkLabel(self, image=img_tk)
+            img_label.image = img_tk
+            img_label.pack(pady=10)
+
+        ctk.CTkLabel(self, text=f"Current Stock: {item['number_of_pcs']}", font=("Arial", 18), text_color="white").pack(pady=10)
+
+        sold_var = ctk.CTkEntry(self, placeholder_text="Enter number of pieces sold")
+        sold_var.pack(pady=10)
+
+        def confirm_sale():
+            try:
+                pieces_sold = int(sold_var.get())
+                if pieces_sold > item['number_of_pcs']:
+                    raise ValueError("Cannot sell more than available stock.")
+                new_stock = item['number_of_pcs'] - pieces_sold
+                items_collection.update_one({"sku": item['sku']}, {"$set": {"number_of_pcs": new_stock}})
+                messagebox.showinfo("Success", "Sale confirmed.")
+                self.setup_home_screen()
+            except ValueError as e:
+                messagebox.showerror("Error", f"Invalid input: {e}")
+
+        confirm_btn = ctk.CTkButton(self, text="Confirm Sale", corner_radius=10, command=confirm_sale, width=200, height=40)
+        confirm_btn.pack(pady=10)
+
+        back_btn = ctk.CTkButton(self, text="Back to Home", corner_radius=10, command=self.setup_home_screen, width=200, height=40)
+        back_btn.pack(pady=10)
+
+    def add_quantity_screen(self):
+        self.clear_widgets()
+        header = ctk.CTkLabel(self, text="Add Quantity to Existing Item", font=("Arial", 30, "bold"), text_color="white")
+        header.pack(pady=20)
+
+        search_var = ctk.CTkEntry(self, width=400, placeholder_text="Enter SKU or Item Name")
+        search_var.pack(pady=10)
+
+        def search_item():
+            query = search_var.get()
+            try:
+                item = items_collection.find_one({"$or": [{"sku": int(query)}, {"product_name": query}]})
+                if item:
+                    self.show_add_pieces_screen(item)
+                else:
+                    messagebox.showerror("Error", "Item not found.")
+            except:
+                messagebox.showerror("Error", "Invalid search input. Enter valid SKU or Item Name.")
+
+        search_btn = ctk.CTkButton(self, text="Search Item", corner_radius=10, command=search_item, width=200, height=40)
+        search_btn.pack(pady=10)
+
+        back_btn = ctk.CTkButton(self, text="Back to Home", corner_radius=10, command=self.setup_home_screen, width=200, height=40)
+        back_btn.pack(pady=10)
+
+    def show_add_pieces_screen(self, item):
+        self.clear_widgets()
+        header = ctk.CTkLabel(self, text=f"Add Pieces to Item: {item['product_name']} (SKU: {item['sku']})", font=("Arial", 24, "bold"), text_color="white")
+        header.pack(pady=20)
+
+        if item.get("image_path") and os.path.exists(item["image_path"]):
+            img = Image.open(item["image_path"])
+            img.thumbnail((200, 200))
+            img_tk = ImageTk.PhotoImage(img)
+            img_label = ctk.CTkLabel(self, image=img_tk)
+            img_label.image = img_tk
+            img_label.pack(pady=10)
+
+        ctk.CTkLabel(self, text=f"Current Stock: {item['number_of_pcs']}", font=("Arial", 18), text_color="white").pack(pady=10)
+
+        quantity_var = ctk.CTkEntry(self, placeholder_text="Enter number of pieces to add")
+        quantity_var.pack(pady=10)
+
+        def confirm_add_pieces():
+            try:
+                pieces_to_add = int(quantity_var.get())
+                new_stock = item['number_of_pcs'] + pieces_to_add
+                items_collection.update_one({"sku": item['sku']}, {"$set": {"number_of_pcs": new_stock}})
+                messagebox.showinfo("Success", f"Added {pieces_to_add} pieces to SKU {item['sku']}.")
+                self.setup_home_screen()
+            except ValueError as e:
+                messagebox.showerror("Error", f"Invalid input: {e}")
+
+        confirm_btn = ctk.CTkButton(self, text="Confirm", corner_radius=10, command=confirm_add_pieces, width=200, height=40)
+        confirm_btn.pack(pady=10)
+
+        back_btn = ctk.CTkButton(self, text="Back to Home", corner_radius=10, command=self.setup_home_screen, width=200, height=40)
+        back_btn.pack(pady=10)
+
+    def edit_item_screen(self, item):
+        self.clear_widgets()
+        header = ctk.CTkLabel(self, text="Edit Item", font=("Arial", 30, "bold"), text_color="white")
+        header.pack(pady=20)
+
+        self.create_item_form(lambda: self.save_item_changes(item), item)
+
+    def save_item_changes(self, original_item):
+        try:
+            updated_item = {
+                "product_name": self.form_entries["Item Name"].get(),
+                "sku": original_item['sku'],
+                "category": self.form_entries["Category"].get(),
+                "grams": float(self.form_entries["Grams"].get()),
+                "ctw_diamond": float(self.form_entries["CTW Diamond"].get()),
+                "number_of_pcs": int(self.form_entries["Number of Pieces"].get()),
+                "reference_cost": float(self.form_entries["Reference Cost"].get()),
+                "our_cost": float(self.form_entries["Our Cost"].get()),
+                "image_path": self.image_path,
+            }
+
+            items_collection.update_one({"sku": original_item['sku']}, {"$set": updated_item})
+            messagebox.showinfo("Success", "Item updated successfully!")
+            self.setup_home_screen()
+
+        except ValueError as e:
+            messagebox.showerror("Error", f"Invalid input: {e}")
+
+    def clear_widgets(self):
+        for widget in self.winfo_children():
+            widget.destroy()
 
 if __name__ == "__main__":
-    root = ctk.CTk()
-    app = MainApp(root)
-    root.mainloop()
+    ctk.set_appearance_mode("Dark")
+    ctk.set_default_color_theme("blue")
+    app = MainApp()
+    app.mainloop()
