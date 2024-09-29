@@ -1,0 +1,6 @@
+customtkinter
+tk
+Pillow
+pymongo
+qrcode
+matplotlib
