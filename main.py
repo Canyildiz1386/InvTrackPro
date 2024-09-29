@@ -104,6 +104,9 @@ class MainApp(ctk.CTk):
 
     def setup_home_screen(self):
         self.clear_widgets()
+        
+        self.inventory = list(items_collection.find())
+
         header = ctk.CTkLabel(self, text="🏠 Inventory System", font=("Arial", 36, "bold"), text_color="white")
         header.pack(pady=20)
 
