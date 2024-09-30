@@ -23,8 +23,10 @@ class MainApp(ctk.CTk):
     def __init__(self):
         super().__init__()
         self.title("🔐 Inventory Management System 🔐")
-        self.geometry("1080x720")
+        self.geometry("1080x1080")
         self.configure(bg="#1A1A1D")
+        self.state('zoomed')
+        self.resizable(False,False)
         self.image_path = None
         self.sku_counter = self.get_next_sku()
         self.inventory = list(items_collection.find())
@@ -371,6 +373,12 @@ class MainApp(ctk.CTk):
         else:
             tree_scroll = ttk.Scrollbar(parent)
             tree_scroll.pack(side="right", fill="y")
+            style = ttk.Style()
+            style.theme_use('default') 
+            style.configure("Treeview", background="black", foreground="white", fieldbackground="black")
+            
+            style.configure("Treeview.Heading", background="black", foreground="white", font=('Arial', 12, 'bold'))
+            
             self.tree = ttk.Treeview(parent, columns=("Item", "SKU", "Category", "Cost", "Stock"), show="headings", yscrollcommand=tree_scroll.set)
             self.tree.heading("Item", text="🛍️ Item 🛍️")
             self.tree.heading("SKU", text="📦 SKU 📦")
@@ -403,12 +411,13 @@ class MainApp(ctk.CTk):
         self.create_item_form(self.save_new_item)
 
     def create_item_form(self, save_command, item=None):
+        back_btn = ctk.CTkButton(self, text="🔙 Back to Home 🔙", corner_radius=10, command=self.setup_home_screen, width=200, height=40)
+        back_btn.pack(pady=10)
+        save_btn = ctk.CTkButton(self, text="💾 Save Item 💾", corner_radius=10, command=save_command, width=200, height=40)
+        save_btn.pack(pady=20)
         form_frame = ctk.CTkFrame(self, fg_color="#2C2F33", corner_radius=10)
         form_frame.pack(pady=20, padx=20, fill="both", expand=True)
-        img_label = ctk.CTkLabel(form_frame, text="🖼️ No Image Uploaded 🖼️", text_color="white", width=200)
-        img_label.grid(row=0, column=1, padx=20, pady=10)
-        img_btn = ctk.CTkButton(form_frame, text="📤 Upload Image 📤", corner_radius=10, command=lambda: self.upload_image(img_label), width=200)
-        img_btn.grid(row=0, column=0, padx=20, pady=10)
+
         form_fields = [
             ("Item Name", ctk.CTkEntry(form_frame, width=300)),
             ("SKU", ctk.CTkEntry(form_frame, width=300, state='disabled')),
@@ -437,10 +446,8 @@ class MainApp(ctk.CTk):
             self.image_path = item.get("image_path", None)
         else:
             self.form_entries["SKU"].insert(0, str(self.sku_counter))
-        save_btn = ctk.CTkButton(self, text="💾 Save Item 💾", corner_radius=10, command=save_command, width=200, height=40)
-        save_btn.pack(pady=20)
-        back_btn = ctk.CTkButton(self, text="🔙 Back to Home 🔙", corner_radius=10, command=self.setup_home_screen, width=200, height=40)
-        back_btn.pack(pady=10)
+
+
 
     def upload_image(self, label):
         file_path = filedialog.askopenfilename()
@@ -651,6 +658,9 @@ class MainApp(ctk.CTk):
         header = ctk.CTkLabel(self, text="👤 Manage Users 👤", font=("Arial", 36, "bold"), text_color="white")
         header.pack(pady=20)
 
+        back_btn = ctk.CTkButton(self, text="🔙 Back to Home 🔙", corner_radius=10, command=self.setup_home_screen, width=200, height=40)
+        back_btn.pack(pady=10)
+
         search_frame = ctk.CTkFrame(self, fg_color="#2C2F33", corner_radius=10)
         search_frame.pack(pady=10, padx=20, fill="x")
 
@@ -665,8 +675,7 @@ class MainApp(ctk.CTk):
 
         self.show_users_table(self.user_frame)
 
-        back_btn = ctk.CTkButton(self, text="🔙 Back to Home 🔙", corner_radius=10, command=self.setup_home_screen, width=200, height=40)
-        back_btn.pack(pady=10)
+
 
     def search_users(self, *args):
         search_query = self.search_entry.get()
@@ -686,6 +695,12 @@ class MainApp(ctk.CTk):
             users = list(users_collection.find())
         tree_scroll = ttk.Scrollbar(parent)
         tree_scroll.pack(side="right", fill="y")
+        style = ttk.Style()
+        style.theme_use('default') 
+        style.configure("Treeview", background="black", foreground="white", fieldbackground="black")
+        style.configure("Treeview.Heading", background="black", foreground="white", font=('Arial', 12, 'bold'))
+            
+
         self.user_tree = ttk.Treeview(parent, columns=("Name", "Username", "Role"), show="headings", yscrollcommand=tree_scroll.set)
         self.user_tree.heading("Name", text="👤 Name 👤")
         self.user_tree.heading("Username", text="📛 Username 📛")
