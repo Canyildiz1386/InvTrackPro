@@ -24,6 +24,7 @@ class MainApp(ctk.CTk):
         super().__init__()
         self.title("🔐 Inventory Management System 🔐")
         self.geometry("1080x720")
+        self.attributes("-fullscreen", True) 
         self.configure(bg="#1A1A1D")
         self.image_path = None
         self.sku_counter = self.get_next_sku()
@@ -155,7 +156,7 @@ class MainApp(ctk.CTk):
         total_cost = sum(item['our_cost'] * item['number_of_pcs'] for item in self.inventory)
         report_data = {
             "Inventory Summary": [{"Item": item['product_name'], "SKU": item['sku'], "Category": item['category'], "Stock": item['number_of_pcs'], "Cost": item['our_cost']} for item in self.inventory],
-            "User Activities": list(users_collection.find({}, {"username": 1, "activity_log": 1})),  
+            "User Activities": list(users_collection.find({}, {"username": 1, "activity_log": 1})),
         }
         report_path = filedialog.asksaveasfilename(defaultextension=".json", filetypes=[("JSON files", "*.json")])
         if report_path:
@@ -179,7 +180,6 @@ class MainApp(ctk.CTk):
                     for log in user["activity_log"]:
                         writer.writerow([f"Action: {log['action']}, Timestamp: {log['timestamp']}"])
             messagebox.showinfo("✅ Success ✅", "Inventory and User report generated in CSV format!")
-
 
     def show_register_screen(self):
         self.clear_widgets()
@@ -213,6 +213,10 @@ class MainApp(ctk.CTk):
     def setup_home_screen(self):
         self.clear_widgets()
 
+        username = self.current_user.get('name', 'User')  
+        hello_label = ctk.CTkLabel(self, text=f"👋 Hello, {username}! Welcome to the Inventory System", font=("Arial", 36, "bold"), text_color="white")
+        hello_label.pack(pady=20)
+
         self.inventory = list(items_collection.find())
 
         header = ctk.CTkLabel(self, text="🏠 Inventory System 🏠", font=("Arial", 36, "bold"), text_color="white")
@@ -238,10 +242,12 @@ class MainApp(ctk.CTk):
 
         search_entry.bind("<KeyRelease>", self.live_search)
 
-        button_frame = ctk.CTkFrame(self, fg_color="#2C2F33", corner_radius=10)
-        button_frame.pack(pady=10, padx=20, fill="x")
+
 
         if self.current_user['role'] == 'admin':
+            button_frame = ctk.CTkFrame(self, fg_color="#2C2F33", corner_radius=10)
+            button_frame.pack(pady=10, padx=20, fill="x")
+
             add_item_btn = ctk.CTkButton(button_frame, text="➕ Add New Item ➕", corner_radius=10, command=self.add_item_screen, width=200, height=40)
             add_item_btn.grid(row=0, column=1, padx=20, pady=10)
 
@@ -271,14 +277,12 @@ class MainApp(ctk.CTk):
         back_btn = ctk.CTkButton(button_frame, text="🔙 Back to Home 🔙", corner_radius=10, command=self.setup_home_screen, width=200, height=40)
         back_btn.grid(row=0, column=0, padx=20, pady=10)
 
-
         if self.current_user['role'] == 'admin':
             backup_btn = ctk.CTkButton(button_frame, text="🔄 Backup Data 🔄", corner_radius=10, command=self.backup_data, width=200, height=40)
             backup_btn.grid(row=0, column=1, padx=20, pady=10)
 
             report_btn = ctk.CTkButton(button_frame, text="📄 Generate Report 📄", corner_radius=10, command=self.generate_report, width=200, height=40)
             report_btn.grid(row=0, column=2, padx=20, pady=10)
-
 
         self.create_summary_widget()
         self.create_charts()
@@ -552,7 +556,8 @@ class MainApp(ctk.CTk):
                 new_stock = item['number_of_pcs'] - pieces_sold
                 items_collection.update_one({"sku": item['sku']}, {"$set": {"number_of_pcs": new_stock}})
                 self.log_activity(f"Sold {pieces_sold} pieces of {item['product_name']} (SKU: {item['sku']})")
-                messagebox.showinfo("✅ Success ✅", "Sale confirmed.")
+                self.generate_invoice(item, pieces_sold)
+                messagebox.showinfo("✅ Success ✅", "Sale confirmed and invoice generated.")
                 self.setup_home_screen()
             except ValueError as e:
                 messagebox.showerror("❌ Error ❌", f"Invalid input: {e}")
@@ -731,6 +736,36 @@ class MainApp(ctk.CTk):
         messagebox.showinfo("🗑️ Deleted 🗑️", f"User {user['username']} deleted!")
         self.manage_users_screen()
 
+    def generate_invoice(self, item, pieces_sold):
+        invoice_date = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        invoice_content = f"""
+        Inventory Management System
+        ==========================
+        
+        Invoice for Sale
+        Date: {invoice_date}
+        
+        Sold Item:
+        ----------
+        Product Name: {item['product_name']}
+        SKU: {item['sku']}
+        Category: {item['category']}
+        Quantity Sold: {pieces_sold}
+        Unit Price: ${item['our_cost']:.2f}
+        Total Cost: ${item['our_cost'] * pieces_sold:.2f}
+        
+        Thank you for your purchase!
+        ==========================
+        """
+        
+        save_path = filedialog.asksaveasfilename(defaultextension=".txt", filetypes=[("Text files", "*.txt")])
+        if save_path:
+            if save_path.endswith('.txt'):
+                with open(save_path, 'w') as file:
+                    file.write(invoice_content)
+                messagebox.showinfo("✅ Success ✅", "Invoice generated successfully!")
+
+
     def clear_widgets(self):
         for widget in self.winfo_children():
             widget.destroy()
@@ -741,6 +776,6 @@ class MainApp(ctk.CTk):
 
 if __name__ == "__main__":
     ctk.set_appearance_mode("Dark")
-    ctk.set_default_color_theme("blue")
+    ctk.set_default_color_theme("green")
     app = MainApp()
     app.mainloop()
