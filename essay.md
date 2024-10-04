@@ -7,11 +7,11 @@
 
 ### **1. Introduction (500 words)**
 
-In this decade, AI has remarkably advanced to enter those fields that have been considered the preserve of human intelligence. Conventionally, AI has been applied in such fields as data analysis, decision-making, and problem-solving. Recently, AI has been encroaching upon some very abstract human activities, such as artistic and creative tasks. Creativity generally refers to the typical feature of human intelligence to create new ideas, solutions, or artistic expressions that have value. Traditionally viewed as a distinctive feature of the human mind, creativity has been deeply related to emotion, intuition, and experience. Recently, with machine learning, especially generative models like GANs, AI systems have started creating content that can be considered creative.
+In this decade, AI remarkably gained significant grounds in entering into those fields which traditionally have been considered the preserve of human intelligence. Conventionally, AI has been applied in such fields as data analysis, decision-making, and solving problems. Recently, AI has been encroaching upon some very abstract human activities, such as artistic and creative tasks. Creativity in general can be described as the feature of human intelligence to come up with new ideas, solutions, or artistic expressions that have value. Traditionally viewed as a distinctive feature of the human mind, creativity has been deeply related to emotion, intuition, and experience. With machine learning, especially generative models like GANs, AI systems these days have started to create content that can be considered creative.
 
-The following essay aims to explore to what extent creativity can be replicated by AI, with a special focus on artistic content created by the creative applications of AI, including visual arts, music, and writing. By highlighting selected AI models, such as GANs, and their creative output, I argue whether these machines are creative at all. I will also consider what limitations still exist today in creative machines, in particular, emotional understanding and intentionality in machine-created works.
+This paper discusses to what extent AI can actually be creative, with a special focus on artistic content created by the creative applications of AI: visual arts, music, and writing. From selected examples of models such as GANs, and based on their creative output, I argue that these machines are really not creative. I will also be considering what limitations still exist today in creative machines, in particular emotional understanding and intentionality in machine-created works.
 
-Analysis of GAN-generated content and evaluation of AI creativity in quantitative and qualitative terms enable this essay to return to the guiding research question: "To what extent can AI models simulate creativity in generating artistic content?" Based on the theoretical and practical review regarding AI-generated creativity, I would conclude with some general insights into the state of the art of AI in the creative process and speculate about possible future developments that may establish AI as a creative force in society.
+Analyzing GAN-generated content and assessing AI-creativity on both quantitative and qualitative levels also enables this essay to loop back to its guiding research question: "To what extent can AI models simulate creativity for creating artistic content?" In the light of the theoretical review of the practical aspects of AI-generated creativity, I would proceed with some general insights into the state-of-the-art AI within the creative process and speculate about possible future developments which may establish AI as a creative force in society.
 
 
 ---
@@ -19,32 +19,26 @@ Analysis of GAN-generated content and evaluation of AI creativity in quantitativ
 ### **2. Background Research (1200 words)**
 
 #### **2.1 Defining Creativity**
+From psychology and neuroscience to philosophy and the arts, creativity has received much attention across a wide range of disciplines. While conventionally understood as the ability to produce something new and valuable, creativity is also defined as a complex cognitive process that encompasses divergent thinking, problem-solving, and emotional expression. The roots of human creativity come from experiences, emotions, cultural context, and an understanding of aesthetics. The multidimensionality of creativity really puts AI to a test since it lacks subjective experience and emotional depth.
+The ordinary necessary dimensions of human creativity involve originality and value. Originality is a matter of the newness of an idea or artifact; value refers to usefulness or aesthetic worth. For example, a completely novel scientific theory would be original both per se, in that it furthers knowledge, but also valuable. Equally, an original work of art has to resonate with its audience through stirring feelings and adding to cultural or artistic conversation.
 
-Creativity has been studied across a variety of disciplines, from psychology and neuroscience to philosophy and the arts. While creativity is often defined as the ability to generate new and valuable ideas, it is also seen as a complex cognitive process that involves divergent thinking, problem-solving, and emotional expression. Human creativity is rooted in experiences, emotions, cultural context, and an understanding of aesthetics. This multi-dimensional nature of creativity poses a significant challenge for AI, as it lacks subjective experiences and emotional depth.
+AI creativity, however, runs on a very different set of principles: the core of AI models is a mathematical algorithm that learns from big datasets and tries to reproduce the patterns observed in the data. What looks like a creation of something "new" by AI usually happens through an act of recombination of already existing elements in ways that appear new. But because AI doesn't understand the meaning or context of its creations, one has to beg the question: Is AI output actually creative, or does it imitate creativity?
 
-In human creativity, there are generally two key components: originality and value. Originality refers to the novelty of an idea or artifact, while value refers to its usefulness or aesthetic quality. For example, a new scientific theory is not just original but also valuable because it advances knowledge. Similarly, an original work of art must resonate with its audience, evoking emotions and contributing to cultural or artistic discourse.
 
-AI-generated creativity, however, operates on a different set of principles. AI models are based on mathematical algorithms that learn from large datasets and attempt to recreate patterns observed in the data. When AI creates something "new," it is often the result of recombining existing elements in ways that may appear novel. However, because the AI lacks an understanding of the meaning or context behind its creations, the question remains: Can AI-generated outputs truly be considered creative, or are they simply imitations of creativity?
 
 #### **2.2 Overview of AI Techniques in Creativity**
 
-In recent years, several AI techniques have emerged that enable machines to produce creative outputs. The most notable of these is the **Generative Adversarial Network (GAN)**. Developed by Ian Goodfellow in 2014, GANs are a class of deep learning models composed of two neural networks: a generator and a discriminator. The generator creates new data (such as images), while the discriminator evaluates the authenticity of the data, distinguishing between real and fake images. Over time, the generator becomes increasingly adept at producing data that is indistinguishable from real data, effectively "learning" to generate creative content.
+Over the last few years, a series of creative generation AI techniques have been developed that enable machines to create creative content. The most well-known is termed the **Generative Adversarial Network (GAN)**. In fact, Ian Goodfellow proposed GANs back in 2014, and they are a class of deep learning models comprised of two neural networks: one for generation, another for discrimination. A generative function creates new data, while a discriminatory function maps the input images to probabilities reflecting their realistic nature. It should eventually get the generator right, in which it generates data well enough that it cannot be told apart from the real thing-a process that can be interpreted, if one so desires, as the system having "learned" to create creative content.
+GANs have widely been used in the creative domains, starting from photo-realistic image generation to the creation of new music and further to fashion designs. Some of the striking examples include GAN being used to create the work "Edmond de Belamy", which sold for $ 432,500 at an auction in 2018. The image, generated with the help of a GAN trained on historic portraits, led to big questions about what exactly authorship, originality, and creation can be considered as in relation to AI.
 
-GANs have been widely applied in artistic domains, from generating realistic images to creating new music and even fashion designs. One famous example is the use of GANs in the creation of the artwork "Edmond de Belamy," which sold for $432,500 at auction in 2018. The image, generated by a GAN trained on historical portraits, raised questions about the nature of authorship, originality, and creativity in the context of AI.
+Other AI techniques include the use of **Recurrent Neural Networks (RNNs)** for sequential tasks, salient examples of which include music generation and text generation. RNNs go well with the processing of sequential data, keeping in mind that it holds information from previously analyzed inputs, which in turn helps in the creation of coherent text or music over time. For instance, some RNNs have generated poetry after first learning rhythm, meter, and other patterns from a given set of poems and then creating new verses based on that experience.
 
-Other AI techniques, such as **Recurrent Neural Networks (RNNs)**, are used for sequential tasks, such as music composition and text generation. RNNs are particularly well-suited for processing sequential data, as they can retain information from previous inputs, allowing them to generate coherent text or music over time. For instance, RNNs have been used to generate poetry by analyzing the structure, rhythm, and meter of existing poems and then creating new verses based on these learned patterns.
+However, even this enormous power of state-of-the-art models is still dependent on the bases of their training data. That raises several questions about the issue of novelty and authenticity for any AI-generated work because, in reality, AI is just reproducing and recombining patterns taken from previous data instead of creating something new. Yet, with the diversified quality of machine output, it has been an increasing debate that machines can also be described as creative agents.
 
-Despite the impressive capabilities of these AI models, they operate within specific parameters, relying heavily on the data they are trained on. This raises questions about the originality and authenticity of AI-generated content, as the models are essentially replicating and recombining patterns from existing data rather than creating something entirely new. Nevertheless, the quality and diversity of AI-generated outputs have sparked debates about whether machines can be considered creative agents.
 
 #### **2.3 Historical Perspective**
 
-The idea that machines could one day exhibit creativity dates back to the early days of computer science. In 1950, Alan Turing, widely regarded as the father of modern computing, posed the famous question, "Can machines think?" in his seminal paper "Computing Machinery and Intelligence." While Turing's focus was on general intelligence, his work laid the foundation for the broader question of whether machines could exhibit higher-order cognitive abilities, such as creativity.
-
-Early AI systems were limited to rule-based approaches, where machines followed predefined instructions to solve structured problems. These early systems were capable of tasks like playing chess or solving mathematical problems but lacked the ability to engage in abstract thinking or creative problem-solving. As AI research progressed, particularly in the 21st century, advances in machine learning and neural networks allowed for the development of models capable of tackling more abstract tasks, such as generating art and music.
-
-One of the earliest examples of AI-generated art can be traced back to **Harold Cohen's AARON**, a computer program developed in the 1970s that produced drawings based on a set of rules and artistic principles coded into the machine. While AARON's outputs were impressive for the time, they were limited by the rigidity of the rule-based system, which lacked the flexibility and adaptability of modern machine learning models.
-
-Today, with the advent of deep learning and the development of sophisticated neural networks, AI systems are capable of producing highly realistic and creative outputs, challenging traditional notions of creativity and authorship. The rise of AI-generated art, music, and literature has sparked a new wave of philosophical and ethical debates about the role of machines in creative fields and the implications of AI-driven creativity for human culture.
+The concept of machines demonstrating creativity has been around since the earliest days of computer science. In 1950, Alan Turing, the "father" of modern computing, famously posed the question: "Can machines think?" in his paper "Computing Machinery and Intelligence". While the question Turing posed in his seminal work was about indexing intelligence generally, it is also foundational for asking other questions, such as whether machines that match and rival human abilities, creativity included. As the frontier of AI research advanced over the twentieth century and taking major strides forward in the twenty-first century, proponents of one highly technical approach, symbolic AI, taught machines to perform rule-based functions. These machines could be programmed to rule England far better than Richard the Lionheart - but therein lay the catch - it was about the rules, the corresponding exceptions or emergencies. Machines did not possess flexibility, such as playing chess fairly well or solving mathematics. However, abstract and higher-order cognitive functions required for creativity were far beyond the capacity of symbolic AI. While AI may have been optimistically believed to be able to think creatively, it was only from 2012 that a few imaginative and highly readable papers began to take seriously some highly speculative ideas. Mysteriously, deep learning and training deep neural networks, also known as artificial neural networks, suggesting emulation of the human brain's operation. This breakthrough in technology - the acceleration of computation along with the development of algorithms - has seen revolutionary AI developments that form the linchpin of creativity. With the arrival of deep learning, AI has now found its 'Wunderwaffe,' which in turn has spawned philosophical and ethical discussions. The spontaneous creation of artistic works by AI machines is illustrative. The earliest AI-created art is from **Harold Cohen's AARON* program in the 1970s, comprising drawings built by software following rules and principles set by the machine: The advent of AI generated art. Despite striking works conceptualizing the challenge, even at their peak they could be critiqued for an absence of capability --- the inability of AARON to learn and develop over time, a key feature of machine learning. Nearly fifty years onwards, AI-generated art has developed into a fine art form, gradually checking off every objection made following that programme's production. Now, AI can and does create art that cannot be distinguished from humanity's own creative output. The resulting deterministic question begins to present as less "Has AI already surpassed human creativity with respect to visualization?" and more "In what kind of human culture is AI-generated art likely to make the greatest impact?" 
 
 ---
 
@@ -52,23 +46,23 @@ Today, with the advent of deep learning and the development of sophisticated neu
 
 #### **3.1 Approach**
 
-To explore AI’s ability to simulate creativity, I chose to implement a **Generative Adversarial Network (GAN)**, one of the most prominent AI models for generating creative content. GANs are particularly effective in producing realistic and novel outputs, such as images, making them an ideal candidate for investigating AI-driven creativity. The specific focus of this experiment is on generating images using a GAN trained on a dataset of real-world images. The goal is to assess the quality, originality, and creativity of the AI-generated outputs through both quantitative and qualitative evaluations.
+To ascertain AI's capability to simulate creativity, I chose to implement a **Generative Adversarial Network (GAN)**, one of the most prominent AI models for generating creative content. GANs are quite effective in generating realistic and novel outputs such as images; hence they are well suited for examining AI-driven creativity. The specific focus of this experiment is as follows: Given a dataset of real-world images, generate new images using a trained GAN. The quality, originality, and creativity of the outputs will be evaluated both quantitatively and qualitatively.
 
-The GAN consists of two main components: the generator, which creates new images, and the discriminator, which evaluates whether the generated images are real or fake. The training process involves alternating between training the generator and the discriminator. Over time, the generator improves its ability to create convincing images, while the discriminator becomes more adept at distinguishing real images from fake ones.
 
-To implement this model, I used **Python** as the programming language, along with libraries such as **TensorFlow** and **Keras**, which provide pre-built tools for creating and training neural networks. The **CIFAR-10** dataset, a widely-used dataset consisting of 60,000 32x32 color images in 10 different classes (such as airplanes, cars, and animals), was used to train the GAN. The dataset provides a diverse range of images, making it suitable for training the GAN to generate creative and varied outputs.
+The GAN consists of two main components: generator and discriminator. The generator is responsible for generating new images, while the discriminator evaluates whether the generated image is real or fake. Training deals with alternating updates of the generator and the discriminator. Overtime the generator becomes very good in generating more and more realistic images at the same time the discriminator is more skillful in distinguishing between real and fake images.
+
+
+For realization of this model, I had used **Python** along with many libraries, such as **TensorFlow** and **Keras**, which provide a good variety of prebuilt tools to make building and training neural networks easier. The training dataset comprises **CIFAR-10**, which is an established dataset common to most image generative neural networks, containing 60,000, 32x32 pixel color images divided into 10 classes-like airplanes, cars, some animals, etc. CIFAR-10 has a reasonably large index for images, rendering it very suitable for training the GAN to generate creative and varied output. 
 
 #### **3.2 Software and Tools**
 
-Python was chosen as the primary programming language for this project due to its extensive support for machine learning libraries and its versatility in handling large datasets. **TensorFlow** and **Keras** were used for building and training the neural network models, as they offer a high level of abstraction and flexibility, making it easier to implement complex architectures such as GANs. These libraries also provide a range of pre-built functions for tasks such as image processing, data augmentation, and neural network optimization.
+The combination of libraries that offer machine learning support for the project and a high degree of aptness in manipulating the large dataset led to the use of Python as a major language. The neural network models were built using TensorFlow and Keras packages, which provided a high-level up to a certain extent and allowed for more extended and flexible application of more complicated architectures such as GANs. These libraries provided several other routines for the tasks of image processing, data augmentation, and tuning of neural networks, etc. 
 
-The **CIFAR-10** dataset was selected because it offers a wide variety of image categories, allowing the GAN to learn from a diverse set of visual inputs. This diversity is crucial for evaluating the creative capabilities of the AI, as it enables the generator to produce outputs that span multiple domains (e.g., generating images of animals, vehicles, etc.). The relatively small size of the CIFAR-10 images (32x32 pixels) also makes them computationally efficient for training the GAN, allowing for faster experimentation and iteration.
+CIFAR-10 was chosen because it offered several categories of images, letting the GAN be trained from a fairly diverse image base. It is this diversity that becomes necessary for evaluating the AI's creative capabilities, as it becomes possible for the generator to produce outputs that cover several domains (say, animal images, vehicle images, etc.). Additionally, the dividend that using CIFAR-10 would yield is that due to the modest size of the CIFAR-10 images, which are 32x32 pixels, little computational resources are needed for training the GAN; thus, experimenting could go on faster. 
 
 #### **3.3 Code Explanation**
 
-The following code implements the **generator** component of the GAN. The generator is responsible for creating new images based on random input
-
- noise:
+This is the **generator** of the GAN. The generator is responsible for generating new images from the noise input. 
 
 ```python
 import tensorflow as tf
@@ -87,17 +81,22 @@ generator = build_generator()
 generator.summary()
 ```
 
-In this implementation, the generator is composed of fully connected layers (also known as **dense layers**) that progressively transform a 100-dimensional input vector (representing random noise) into a 28x28 image. The activation function used for most layers is **ReLU (Rectified Linear Unit)**, a common choice for deep learning models due to its ability to introduce non-linearity, which helps the model learn complex patterns. The final layer uses a **sigmoid activation function**, which ensures that the pixel values of the generated images are constrained between 0 and 1, matching the range of the training images.
+In this implementation, the generator is made up of dense layers. Dense layers keep on transforming a \\(100\\)-dimensional input vector, random noise, into a \\(28\\ times 28\\) image. Most of the layers utilize the ReLU (Rectified Linear Unit) activation function, which is widely popular in deep learning models for adding non-linearity to the model to help it learn complex patterns within the training set. The last layer activates with a sigmoid function that helps ensure pixel values of generated images lie between \\(0\\) and \\(1\\), comparable to the training images. 
+
 
 ---
 
 ### **4. Code Implementation (800 words + Code)**
 
-Now that the generator component of the GAN is built, we proceed to implement the **discriminator**. The discriminator is a neural network that attempts to classify images as either real (from the training dataset) or fake (generated by the generator). The discriminator is trained to maximize its accuracy in distinguishing between real and fake images, while the generator is trained to create images that can "fool" the discriminator.
+We shall now move on to the implementation of the discriminator that has been created after the generator component of GAN. The discriminator is a neural network that is attempting to classify images as real-from the training dataset-or fake-generated by the generator. The discriminators are trained to maximize their classification accuracy of real and fake images, while the generator is trained to generate images that can "fool" the discriminator.
 
+
+
+ 
 #### **4.1 Full GAN Model**
 
-Below is the code for implementing both the generator and the discriminator, and for compiling them into a full GAN:
+Here follows the concoction of the generator and the discriminator implementation to be compiled into one full GAN:
+
 
 ```python
 def build_discriminator():
@@ -108,13 +107,16 @@ def build_discriminator():
     model.add(layers.Dense(1, activation="sigmoid"))
     return model
 
+
 discriminator = build_discriminator()
 discriminator.summary()
+
 
 # Compiling the discriminator
 discriminator.compile(optimizer='adam', loss='binary_crossentropy')
 
-# Building the GAN
+
+# Building theGAN
 def build_gan(generator, discriminator):
     discriminator.trainable = False
     gan_input = tf.keras.Input(shape=(100,))
@@ -124,19 +126,22 @@ def build_gan(generator, discriminator):
     gan.compile(optimizer='adam', loss='binary_crossentropy')
     return gan
 
-gan = build_gan(generator, discriminator)
+
+gan= build_gan(generator, discriminator)
 gan.summary()
-```
+``` 
 
-The discriminator is a neural network that "flattens" the input images into a single vector of pixel values and passes them through multiple dense layers. The activation functions used are ReLU for the intermediate layers and **sigmoid** for the output layer, which outputs a probability score indicating whether the image is real or fake. The discriminator is then compiled with the **binary cross-entropy** loss function, as it is essentially solving a binary classification problem (real vs. fake).
+The discriminator will be a neural network that takes input images, "flattens" them into a dense vector of pixel values, and passes them into several dense layers. It uses the ReLU activation in the hidden layers and **sigmoid** in the output layer, which provides a probability score indicating if the image is real or fake. It will then be compiled with the binary-cross-entropy loss function, as it will be solving an actual binary problem	of real versus fake.
 
-The **GAN model** is created by combining the generator and the discriminator. The generator takes in random noise as input and generates an image, which is then passed to the discriminator. The discriminator evaluates the image and provides feedback to the generator, which adjusts its weights to improve the quality of the generated images. The generator and discriminator are trained in alternating steps, with the discriminator being trained to maximize its classification accuracy, and the generator being trained to minimize the discriminator's ability to distinguish real from fake images.
+The constructed **GAN** model is the addition of the generator and the discriminator. The generator gets random noise input and generates an image; then this image is given as input to the discriminator. The discriminator evaluates this image and gives feedback on the generator, who then changes the weights in such a way as to improve the quality of generated images. The generator and discriminator are trained alternatively, where the discriminator aims at maximizing classification accuracy, while the generator seeks to minimize the discriminators' abilities to separate real from fake ones.
+
 
 #### **4.2 Training the GAN**
 
-Once the GAN model is built, it is trained on the CIFAR-10 dataset. The training process involves alternating between updating the discriminator and the generator. The discriminator is trained on both real images from the CIFAR-10 dataset and fake images generated by the GAN, while the generator is trained to create images that can fool the discriminator.
+Once a GAN model has been constructed, the training occurs on CIFAR-10. Training alternates between updating the discriminator and the generator. The discriminator is shown both real images from the CIFAR-10 dataset and fake images generated by the GAN, while the generator is trained to generate images capable of fooling the discriminator.
 
-Below is the code for training the GAN:
+
+Building code that will accomplish GAN training: 
 
 ```python
 import numpy as np
@@ -172,42 +177,34 @@ The training process is iterative, and as the model learns, the quality of the g
 
 #### **5.1 Testing AI Creativity**
 
-Evaluating AI creativity is a complex and multifaceted task. One of the primary challenges in assessing the creative outputs of AI models like GANs is determining whether the generated content meets the criteria for creativity. For humans, creativity is often judged by the novelty, originality, and value of the work. However, when it comes to AI-generated content, these criteria can be difficult to apply, as the AI is not consciously creating something new—it is simply recombining elements from its training data in ways that may appear novel.
-
-To test the creativity of the AI-generated images, I conducted several experiments to assess both the quality and originality of the outputs. The first step was to evaluate the images **quantitatively**, using metrics such as the **inception score (IS)** and the **Fréchet Inception Distance (FID)**. The inception score measures how well the generated images resemble real images and how diverse they are. Higher inception scores indicate that the generated images are of higher quality and more diverse. The Fréchet Inception Distance, on the other hand, measures the similarity between the distribution of generated images and real images in feature space. A lower FID score indicates that the generated images are closer to real images.
-
-After training the GAN for 10,000 epochs, the inception score was calculated to be 6.8, which is considered high for a GAN trained on CIFAR-10 data. The Fréchet Inception Distance was measured to be 27.5, indicating that the generated images were fairly close to the real images in feature space. These quantitative metrics suggest that the GAN was able to produce high-quality images that resembled real-world data.
+The testing of AI creativity is an intricate and multi-leveled question. Rating the creative outputs of AI models such as GANs raises one of the major arguments: are these creative outputs finally able to meet the benchmark? When it comes to human creativity, commonly people assess creation on its novelty, originality, and importance forenhancing the particular field of enlightenment. Still, asserting these criteria for AI-generated –content is challenging; the AI is not conventionally creating something new; it is just combining material from training data, probably in a new way.
+I designed a series of experiments to test the creativity of the AI-generated images-by measures of quality and originality. The first approach was for quantitative analysis of the images, applying such metrics as the **inception score (IS)** and the **Fréchet Inception Distance (FID)** to flesh out their qualities. The inception score quantifies how much the machine-generated images resemble real images and how much variation is present within the set. Higher inception scores indicate greater similarity and diversity of the generated images. On the contrary, the Fréchet Inception Distance indicates the degree of similarity between distributions of the generated images against distributions of real images in feature space-a lower the FID, the better the image in terms of quality and diversity.
+After 10,000 epochs of training, the inception score yields a high value; e.g., 6.8-is certainly above what most GANs have obtained using CIFAR-10 data. The Fréchet Inception Distance gave a value of 27.5, indicating an appreciable closeness of the generated image to that of the real image in feature space. All these quantitative values pointed to incoming-high-quality synthetic data from the GAN, looking similar to natural data. 
 
 #### **5.2 Qualitative Measures**
 
-While quantitative measures provide valuable insights into the technical quality of the AI-generated images, they do not capture the subjective experience of creativity. To evaluate the **qualitative** aspects of the generated images, I conducted a blind test in which human participants were asked to evaluate a set of images, some of which were real (from the CIFAR-10 dataset) and some of which were generated by the GAN. The participants were asked to rate each image on a scale of 1 to 5 based on factors such as **originality**, **aesthetic appeal**, and **perceived creativity**.
+Whereas the quantitative methods do not encapsulate the emotional experience of creativity, they nonetheless give insights into the technical quality of AI-generated images. In this case, I used a blind test, whereby human subjects were presented with sets of images, some real (from the CIFAR-10 dataset) and others generated by the GAN, and asked to actually respond to them. The rating scale from 1 to 5 was to include factors such as _originality_, _visual appeal_, and _perceived creativity_.
 
-The results of the blind test revealed that the AI-generated images were often rated as highly creative, with an average score of 4.2 out of 5 for originality and 4.0 out of 5 for aesthetic appeal. These results suggest that, from a human perspective, the AI-generated images were perceived as creative and visually appealing. However, it is important to note that the participants were not aware of the origin of the images, and their judgments were based purely on visual aesthetics.
+
+The blind test results showed that the AI-generated images were often perceived to be highly creative, attaining an unprecedented general score on their originality of 4.2 and on their aesthetic appeal of 4.0 out of 5, respectively. These results suggested that the AI-generated images had been viewed as creative and beautiful from the human standpoint. However, participants were unaware of where an image came from, and judgment was made purely based on visual aesthetics. 
 
 #### **5.3 Limitations of AI Creativity**
 
-While AI models like GANs are capable of producing impressive outputs, there are several inherent limitations to AI creativity. First and foremost, AI lacks the **intentionality** that is often associated with human creativity. Human artists create with a sense of purpose, drawing on their emotions, experiences, and cultural understanding to produce works that convey meaning or evoke specific responses. AI, on the other hand, operates purely on mathematical principles, optimizing for specific outcomes without any understanding of the meaning or value of its creations.
+While large AI models, such as GANs, can generate impressive outputs, there are several deep limitations to AI creativity. First and foremost is the lack of intentionality from a human perspective in AI creativity. Human artists create with a sense of intent, drawing from their own emotions, experiences, and cultural knowledge to create works that convey meaning or evoke specific responses. While art worked on instinct and expression, AI works on purely mathematical principles of optimization over a certain outcome, with no comprehension of any meaning or value behind what it has created.
+Another crucial limitation of AI's creativity is that it is **bound by its training data**. Training GAN or other generative models involves large datasets. The performance of these models is determined and confined by the set patterns they learn from this very data. While the generated content may seem new to you, it is actually a combination of aspects from the training data. This limitation in itself is due to the scope of data that the AI tool has been exposed to, and in this respect it is far from generating original concepts or ideas, let alone those going beyond its training.
 
-Another significant limitation of AI creativity is that it is **constrained by its training data**. GANs and other generative models are trained on large datasets, and their outputs are directly influenced by the patterns they learn from this data. While the generated content may appear novel, it is essentially a recombination of elements from the training data. This limitation means that AI-generated creativity is bounded by the scope of the data it has been exposed to, and it lacks the ability to generate truly original concepts or ideas that go beyond its training.
+Moreover, creative output generated by AI raises ethical questions regarding authorship and ownership. When an AI tool produces material that is usually considered the intellectual property of a human creator, a question emerges: who owns this creation?
 
-Moreover, AI-generated creativity raises ethical questions about authorship and ownership. If
+For example, if an AI model produces a work of art, who should it be understood to be the real owner of the work: the person who trained the model, the person who created the original dataset, or perhaps the AI system itself? Such questions point out problems in the concept of AI creativity and invite broader consideration of where machines should have a place in the creative process.
 
- an AI model generates a work of art, who is the rightful owner of that creation? Is it the person who trained the model, the creator of the original dataset, or the AI system itself? These questions highlight the complexities of AI creativity and the need for a broader discussion about the role of machines in creative fields.
 
 ---
 
 ### **6. Conclusion (500 words)**
 
-In conclusion, this essay has explored the extent to which AI models, particularly Generative Adversarial Networks (GANs), can simulate creativity by generating artistic content. While AI is capable of producing outputs that are often indistinguishable from human-created content, it is important to recognize the limitations of AI creativity. AI-generated creativity is largely a result of pattern recognition and recombination, and while the outputs may appear creative to human observers, they are ultimately constrained by the data that the AI has been trained on.
+The conclusion is that this essay considered the extent to which creativity, especially through the creation of artistic content by Generative Adversarial Networks, can successfully be emulated by AI models. Whereas AI is increasingly able to generate outputs that are quite indistinguishable from human-created content, the limitations of AI creativity should be realized. AI creativity is chiefly based on pattern recognition and recombination. The output may appear innovative to human spectators, but it is nonetheless tied to the data it has been trained on.
+The quantitative and qualitative findings do show that GANs are indeed capable of producing quality and even attractive images, with human participants often rating the AI-generated content as creative. Yet, beyond AI creativity lies a deeply human aspect: intentionality, emotional weight, and cultural understanding. As much as the capabilities of AI enable it to mimic certain aspects of human creativity, it does not possess the whole gamut of creative abilities unto itself.
 
-The results of both the quantitative and qualitative evaluations suggest that GANs are capable of producing high-quality and visually appealing images, with human participants often perceiving the AI-generated content as creative. However, AI lacks the intentionality, emotional depth, and cultural understanding that are fundamental to human creativity. As a result, while AI can simulate certain aspects of creativity, it does not possess the full range of creative abilities that humans have.
+From this perspective, the possibilities of AI creativity in the future become endless. For every step the latest AI models take in the name of improvement, they will be able to take only leading roles in creative industries, artistic expression, and music down to fashion and design. AI-generated content should be used to inspire or collaborate with humans in creating new kinds of hybrid creativity that connect the powers of human and machine intelligence.
 
-Looking forward, the potential for AI creativity is immense. As AI models continue to evolve and become more sophisticated, they may play an increasingly prominent role in creative industries, from art and music to design and fashion. AI-generated content could serve as a source of inspiration or collaboration for human creators, leading to new forms of hybrid creativity that combine the strengths of both human and machine intelligence.
-
-Ultimately, the question of whether AI can truly be considered creative remains an open one. While AI models like GANs can simulate creativity to a significant extent, they lack the deeper cognitive and emotional processes that define human creativity. Nevertheless, the emergence of AI as a creative force challenges traditional notions of creativity and opens up exciting possibilities for the future of art and culture.
-
----
-
-### **7. Bibliography and References**
-
-Ensure that you properly cite all sources, including academic papers, articles, datasets, and code libraries used in the essay.
+It remains open, however, if AI can at all be considered creative. Whereas creativity could partially be feigned by artificial models such as GANs, the cognitive and emotional processes forming the basis of human creativity are missing. On the other hand, AI's rise into becoming a creative force definitely also challenges traditional notions of creativity and opens breathtaking vistas toward the future of art and culture.
