@@ -18,6 +18,8 @@ client = MongoClient('mongodb://localhost:27017/')
 db = client['inventory_db']
 items_collection = db['items']
 users_collection = db['users']
+customers_collection = db['customers']  # New collection for customers
+transactions_collection = db['transactions']  # New collection for sales transactions
 
 class MainApp(ctk.CTk):
     def __init__(self):
@@ -112,6 +114,8 @@ class MainApp(ctk.CTk):
         data = {
             "items": list(items_collection.find()),
             "users": list(users_collection.find()),
+            "customers": list(customers_collection.find()),  # Backup customer data
+            "transactions": list(transactions_collection.find())  # Backup transactions data
         }
         backup_path = filedialog.asksaveasfilename(defaultextension=".json", filetypes=[("JSON files", "*.json")])
         if backup_path:
@@ -122,7 +126,9 @@ class MainApp(ctk.CTk):
     def backup_to_csv(self):
         data = {
             "items": list(items_collection.find()),
-            "users": list(users_collection.find())
+            "users": list(users_collection.find()),
+            "customers": list(customers_collection.find()),  # Include customer data
+            "transactions": list(transactions_collection.find())  # Include transaction data
         }
         backup_path = filedialog.asksaveasfilename(defaultextension=".csv", filetypes=[("CSV files", "*.csv")])
         if backup_path:
@@ -136,6 +142,14 @@ class MainApp(ctk.CTk):
                 writer.writerow(data["users"][0].keys())
                 for user in data["users"]:
                     writer.writerow(user.values())
+                writer.writerow(["Customers"])
+                writer.writerow(data["customers"][0].keys())
+                for customer in data["customers"]:
+                    writer.writerow(customer.values())
+                writer.writerow(["Transactions"])
+                writer.writerow(data["transactions"][0].keys())
+                for transaction in data["transactions"]:
+                    writer.writerow(transaction.values())
             messagebox.showinfo("✅ Success ✅", "Data backed up to CSV file successfully!")
 
     def generate_report(self):
@@ -157,6 +171,8 @@ class MainApp(ctk.CTk):
         report_data = {
             "Inventory Summary": [{"Item": item['product_name'], "SKU": item['sku'], "Category": item['category'], "Stock": item['number_of_pcs'], "Cost": item['our_cost']} for item in self.inventory],
             "User Activities": list(users_collection.find({}, {"username": 1, "activity_log": 1})),
+            "Sales Transactions": list(transactions_collection.find()),  # Include sales transaction data
+            "Customers": list(customers_collection.find())  # Include customer data
         }
         report_path = filedialog.asksaveasfilename(defaultextension=".json", filetypes=[("JSON files", "*.json")])
         if report_path:
@@ -179,6 +195,13 @@ class MainApp(ctk.CTk):
                     writer.writerow([f"User: {user['username']}"])
                     for log in user["activity_log"]:
                         writer.writerow([f"Action: {log['action']}, Timestamp: {log['timestamp']}"])
+                writer.writerow(["Sales Transactions"])
+                transactions = transactions_collection.find()
+                for transaction in transactions:
+                    writer.writerow([f"Transaction ID: {transaction['_id']}, Date: {transaction['date']}, Total: {transaction['total_cost']}"])
+                writer.writerow(["Customers"])
+                for customer in customers_collection.find():
+                    writer.writerow([f"Customer Name: {customer['name']}, Contact: {customer['contact']}"])
             messagebox.showinfo("✅ Success ✅", "Inventory and User report generated in CSV format!")
 
     def show_register_screen(self):
@@ -242,8 +265,6 @@ class MainApp(ctk.CTk):
 
         search_entry.bind("<KeyRelease>", self.live_search)
 
-
-
         if self.current_user['role'] == 'admin':
             button_frame = ctk.CTkFrame(self, fg_color="#2C2F33", corner_radius=10)
             button_frame.pack(pady=10, padx=20, fill="x")
@@ -257,8 +278,11 @@ class MainApp(ctk.CTk):
             manage_users_btn = ctk.CTkButton(button_frame, text="👤 Manage Users 👤", corner_radius=10, command=self.manage_users_screen, width=200, height=40)
             manage_users_btn.grid(row=0, column=3, padx=20, pady=10)
 
+            manage_customers_btn = ctk.CTkButton(button_frame, text="👥 Manage Customers 👥", corner_radius=10, command=self.manage_customers_screen, width=200, height=40)  # New button for customer management
+            manage_customers_btn.grid(row=0, column=4, padx=20, pady=10)
+
             dashboard_btn = ctk.CTkButton(button_frame, text="📊 View Dashboard 📊", corner_radius=10, command=self.setup_dashboard_screen, width=200, height=40)
-            dashboard_btn.grid(row=0, column=4, padx=20, pady=10)
+            dashboard_btn.grid(row=0, column=5, padx=20, pady=10)
 
         self.inventory_frame = ctk.CTkFrame(self, fg_color="#2C2F33", corner_radius=10)
         self.inventory_frame.pack(pady=20, padx=20, fill="both", expand=True)
@@ -399,6 +423,135 @@ class MainApp(ctk.CTk):
                 f"${item.get('our_cost', 0):.2f}",
                 item.get("number_of_pcs", 0),
             ))
+
+    def manage_customers_screen(self):
+        self.clear_widgets()
+
+        header = ctk.CTkLabel(self, text="👥 Manage Customers 👥", font=("Arial", 36, "bold"), text_color="white")
+        header.pack(pady=20)
+
+        search_frame = ctk.CTkFrame(self, fg_color="#2C2F33", corner_radius=10)
+        search_frame.pack(pady=10, padx=20, fill="x")
+
+        search_entry = ctk.CTkEntry(search_frame, placeholder_text="🔍 Search by Name/Contact 🔍", width=400)
+        search_entry.grid(row=0, column=0, padx=10, pady=10)
+        search_entry.bind("<KeyRelease>", self.search_customers)
+
+        add_customer_btn = ctk.CTkButton(search_frame, text="➕ Add Customer ➕", corner_radius=10, command=self.add_customer_screen, width=200)
+        add_customer_btn.grid(row=0, column=1, padx=10, pady=10)
+
+        self.search_entry = search_entry
+
+        self.customer_frame = ctk.CTkFrame(self, fg_color="#2C2F33", corner_radius=10)
+        self.customer_frame.pack(pady=20, padx=20, fill="both", expand=True)
+
+        self.show_customers_table(self.customer_frame)
+
+        back_btn = ctk.CTkButton(self, text="🔙 Back to Home 🔙", corner_radius=10, command=self.setup_home_screen, width=200, height=40)
+        back_btn.pack(pady=10)
+
+    def search_customers(self, *args):
+        search_query = self.search_entry.get()
+        query = {}
+        if search_query:
+            query["$or"] = [
+                {"name": {"$regex": search_query, "$options": "i"}},
+                {"contact": {"$regex": search_query, "$options": "i"}},
+            ]
+        customers = list(customers_collection.find(query))
+        for widget in self.customer_frame.winfo_children():
+            widget.destroy()
+        self.show_customers_table(self.customer_frame, customers)
+
+    def show_customers_table(self, parent, customers=None):
+        if customers is None:
+            customers = list(customers_collection.find())
+        tree_scroll = ttk.Scrollbar(parent)
+        tree_scroll.pack(side="right", fill="y")
+        self.customer_tree = ttk.Treeview(parent, columns=("Name", "Contact"), show="headings", yscrollcommand=tree_scroll.set)
+        self.customer_tree.heading("Name", text="👤 Name 👤")
+        self.customer_tree.heading("Contact", text="📞 Contact 📞")
+        self.customer_tree.pack(fill="both", expand=True, padx=20, pady=10)
+        tree_scroll.config(command=self.customer_tree.yview)
+
+        for customer in customers:
+            self.customer_tree.insert("", "end", values=(
+                customer['name'],
+                customer['contact']
+            ))
+
+        self.customer_tree.bind("<Double-1>", self.show_customer_context_menu)
+
+    def show_customer_context_menu(self, event):
+        menu = Menu(self, tearoff=0)
+
+        item = self.customer_tree.identify_row(event.y)
+        if item:
+            self.customer_tree.selection_set(item)
+            selected_customer = self.customer_tree.item(item, "values")
+            customer = customers_collection.find_one({"name": selected_customer[0]})
+
+            menu.add_command(label="✏ Edit Customer ✏", command=lambda: self.edit_customer_screen(customer))
+            menu.add_command(label="❌ Delete Customer ❌", command=lambda: self.delete_customer(customer))
+
+            menu.post(event.x_root, event.y_root)
+
+    def add_customer_screen(self):
+        self.clear_widgets()
+
+        header = ctk.CTkLabel(self, text="➕ Add New Customer ➕", font=("Arial", 36, "bold"), text_color="white")
+        header.pack(pady=20)
+
+        name_entry = ctk.CTkEntry(self, placeholder_text="👤 Name 👤", width=300)
+        name_entry.pack(pady=10)
+        contact_entry = ctk.CTkEntry(self, placeholder_text="📞 Contact 📞", width=300)
+        contact_entry.pack(pady=10)
+
+        def save_customer():
+            customer_data = {
+                "name": name_entry.get(),
+                "contact": contact_entry.get(),
+            }
+            customers_collection.insert_one(customer_data)
+            messagebox.showinfo("✅ Success ✅", "Customer added successfully!")
+            self.manage_customers_screen()
+
+        save_btn = ctk.CTkButton(self, text="💾 Save Customer 💾", corner_radius=10, command=save_customer, width=200, height=40)
+        save_btn.pack(pady=10)
+        back_btn = ctk.CTkButton(self, text="🔙 Back to Manage Customers 🔙", corner_radius=10, command=self.manage_customers_screen, width=200, height=40)
+        back_btn.pack(pady=10)
+
+    def edit_customer_screen(self, customer):
+        self.clear_widgets()
+
+        header = ctk.CTkLabel(self, text="✏ Edit Customer ✏", font=("Arial", 36, "bold"), text_color="white")
+        header.pack(pady=20)
+
+        name_entry = ctk.CTkEntry(self, placeholder_text="👤 Name 👤", width=300)
+        name_entry.insert(0, customer['name'])
+        name_entry.pack(pady=10)
+        contact_entry = ctk.CTkEntry(self, placeholder_text="📞 Contact 📞", width=300)
+        contact_entry.insert(0, customer['contact'])
+        contact_entry.pack(pady=10)
+
+        def save_customer():
+            customers_collection.update_one(
+                {"_id": customer["_id"]},
+                {"$set": {"name": name_entry.get(), "contact": contact_entry.get()}}
+            )
+            messagebox.showinfo("✅ Success ✅", "Customer updated successfully!")
+            self.manage_customers_screen()
+
+        save_btn = ctk.CTkButton(self, text="💾 Save Customer 💾", corner_radius=10, command=save_customer, width=200, height=40)
+        save_btn.pack(pady=10)
+
+    def delete_customer(self, customer):
+        confirm = messagebox.askyesno("🗑️ Confirm Delete 🗑️", f"Are you sure you want to delete {customer['name']}?")
+        if confirm:
+            customers_collection.delete_one({"_id": customer["_id"]})
+            messagebox.showinfo("🗑️ Deleted 🗑️", f"Customer {customer['name']} deleted!")
+            self.manage_customers_screen()
+
 
     def add_item_screen(self):
         self.clear_widgets()
@@ -556,8 +709,8 @@ class MainApp(ctk.CTk):
                 new_stock = item['number_of_pcs'] - pieces_sold
                 items_collection.update_one({"sku": item['sku']}, {"$set": {"number_of_pcs": new_stock}})
                 self.log_activity(f"Sold {pieces_sold} pieces of {item['product_name']} (SKU: {item['sku']})")
-                self.generate_invoice(item, pieces_sold)
-                messagebox.showinfo("✅ Success ✅", "Sale confirmed and invoice generated.")
+                self.record_transaction(item, pieces_sold)  # Record sale in transactions collection
+                messagebox.showinfo("✅ Success ✅", "Sale confirmed and transaction recorded.")
                 self.setup_home_screen()
             except ValueError as e:
                 messagebox.showerror("❌ Error ❌", f"Invalid input: {e}")
@@ -566,6 +719,17 @@ class MainApp(ctk.CTk):
         confirm_btn.pack(pady=10)
         back_btn = ctk.CTkButton(self, text="🔙 Back to Home 🔙", corner_radius=10, command=self.setup_home_screen, width=200, height=40)
         back_btn.pack(pady=10)
+
+    def record_transaction(self, item, pieces_sold):
+        transaction = {
+            "item_sku": item['sku'],
+            "item_name": item['product_name'],
+            "quantity_sold": pieces_sold,
+            "unit_price": item['our_cost'],
+            "total_cost": pieces_sold * item['our_cost'],
+            "date": datetime.datetime.now()
+        }
+        transactions_collection.insert_one(transaction)
 
     def add_quantity_screen(self):
         self.clear_widgets()
@@ -779,3 +943,4 @@ if __name__ == "__main__":
     ctk.set_default_color_theme("green")
     app = MainApp()
     app.mainloop()
+
