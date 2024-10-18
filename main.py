@@ -26,7 +26,7 @@ class MainApp(ctk.CTk):
         super().__init__()
         self.title("🔐 Inventory Management System 🔐")
         self.geometry("1080x720")
-        self.attributes("-fullscreen", True) 
+        
         self.configure(bg="#1A1A1D")
         self.image_path = None
         self.sku_counter = self.get_next_sku()
@@ -54,10 +54,11 @@ class MainApp(ctk.CTk):
             "username": username,
             "password": hashed_password,
             "name": name,
-            "role": role
+            "role": role  # Save the role (user or admin)
         })
         messagebox.showinfo("✅ Success ✅", "Registration successful!")
         self.show_login_screen()
+
 
     def authenticate_user(self, username, password):
         hashed_password = self.hash_password(password)
@@ -94,8 +95,7 @@ class MainApp(ctk.CTk):
 
         login_btn = ctk.CTkButton(self, text="🔓 Login 🔓", corner_radius=10, command=login, width=200, height=40)
         login_btn.pack(pady=10)
-        register_btn = ctk.CTkButton(self, text="📝 Register 📝", corner_radius=10, command=self.show_register_screen, width=200, height=40)
-        register_btn.pack(pady=10)
+
 
     def backup_data(self):
         backup_window = ctk.CTkToplevel(self)
@@ -245,49 +245,251 @@ class MainApp(ctk.CTk):
         header = ctk.CTkLabel(self, text="🏠 Inventory System 🏠", font=("Arial", 36, "bold"), text_color="white")
         header.pack(pady=20)
 
-        search_filter_frame = ctk.CTkFrame(self, fg_color="#2C2F33", corner_radius=10)
-        search_filter_frame.pack(pady=10, padx=20, fill="x")
+        button_frame = ctk.CTkFrame(self, fg_color="#2C2F33", corner_radius=10)
+        button_frame.pack(pady=10, padx=20, fill="x")
 
-        search_entry = ctk.CTkEntry(search_filter_frame, placeholder_text="🔍 Search by Name/SKU 🔍", width=400)
-        search_entry.grid(row=0, column=0, padx=10, pady=10)
+        manage_items_btn = ctk.CTkButton(button_frame, text="🛠 Manage Items 🛠", corner_radius=10, command=self.manage_items_screen, width=200, height=40)
+        manage_items_btn.grid(row=0, column=0, padx=20, pady=10)
 
-        filter_category = ctk.CTkComboBox(
-            search_filter_frame,
-            width=200,
-            values=["All", "Rings", "Necklaces", "Bracelets", "Watches"],
-            command=self.live_search
-        )
-        filter_category.set("All")
-        filter_category.grid(row=0, column=1, padx=10, pady=10)
+        manage_users_btn = ctk.CTkButton(button_frame, text="👤 Manage Users 👤", corner_radius=10, command=self.manage_users_screen, width=200, height=40)
+        manage_users_btn.grid(row=0, column=1, padx=20, pady=10)
 
-        self.search_entry = search_entry
-        self.filter_category = filter_category
+        manage_customers_btn = ctk.CTkButton(button_frame, text="👥 Manage Customers 👥", corner_radius=10, command=self.manage_customers_screen, width=200, height=40)
+        manage_customers_btn.grid(row=0, column=2, padx=20, pady=10)
 
-        search_entry.bind("<KeyRelease>", self.live_search)
+        # New "Manage Transactions" button
+        manage_transactions_btn = ctk.CTkButton(button_frame, text="💼 Manage Transactions 💼", corner_radius=10, command=self.manage_transactions_screen, width=200, height=40)
+        manage_transactions_btn.grid(row=0, column=3, padx=20, pady=10)
 
-        if self.current_user['role'] == 'admin':
-            button_frame = ctk.CTkFrame(self, fg_color="#2C2F33", corner_radius=10)
-            button_frame.pack(pady=10, padx=20, fill="x")
-
-            add_item_btn = ctk.CTkButton(button_frame, text="➕ Add New Item ➕", corner_radius=10, command=self.add_item_screen, width=200, height=40)
-            add_item_btn.grid(row=0, column=1, padx=20, pady=10)
-
-            add_quantity_btn = ctk.CTkButton(button_frame, text="📦 Add Quantity 📦", corner_radius=10, command=self.add_quantity_screen, width=200, height=40)
-            add_quantity_btn.grid(row=0, column=2, padx=20, pady=10)
-
-            manage_users_btn = ctk.CTkButton(button_frame, text="👤 Manage Users 👤", corner_radius=10, command=self.manage_users_screen, width=200, height=40)
-            manage_users_btn.grid(row=0, column=3, padx=20, pady=10)
-
-            manage_customers_btn = ctk.CTkButton(button_frame, text="👥 Manage Customers 👥", corner_radius=10, command=self.manage_customers_screen, width=200, height=40)  # New button for customer management
-            manage_customers_btn.grid(row=0, column=4, padx=20, pady=10)
-
-            dashboard_btn = ctk.CTkButton(button_frame, text="📊 View Dashboard 📊", corner_radius=10, command=self.setup_dashboard_screen, width=200, height=40)
-            dashboard_btn.grid(row=0, column=5, padx=20, pady=10)
+        dashboard_btn = ctk.CTkButton(button_frame, text="📊 View Dashboard 📊", corner_radius=10, command=self.setup_dashboard_screen, width=200, height=40)
+        dashboard_btn.grid(row=0, column=4, padx=20, pady=10)
 
         self.inventory_frame = ctk.CTkFrame(self, fg_color="#2C2F33", corner_radius=10)
         self.inventory_frame.pack(pady=20, padx=20, fill="both", expand=True)
 
         self.create_inventory_overview()
+
+    def search_transactions(self, *args):
+        search_query = self.search_entry.get()
+        query = {}
+        if search_query:
+            query["$or"] = [
+                {"item_name": {"$regex": search_query, "$options": "i"}},
+                {"date": {"$regex": search_query, "$options": "i"}}
+            ]
+        transactions = list(transactions_collection.find(query))
+        for widget in self.transactions_frame.winfo_children():
+            widget.destroy()
+        self.show_transactions_table(self.transactions_frame, transactions)
+
+    def show_transactions_table(self, parent, transactions=None):
+        if transactions is None:
+            transactions = list(transactions_collection.find())
+
+        tree_scroll = ttk.Scrollbar(parent)
+        tree_scroll.pack(side="right", fill="y")
+
+        # Add Transaction ID and Customer Name columns
+        self.transactions_tree = ttk.Treeview(parent, columns=("Transaction ID", "Customer Name", "Item", "SKU", "Quantity Sold", "Total Cost", "Date"), show="headings", yscrollcommand=tree_scroll.set)
+        
+        # Set up headings
+        self.transactions_tree.heading("Transaction ID", text="🆔 Transaction ID 🆔")
+        self.transactions_tree.heading("Customer Name", text="👤 Customer Name 👤")
+        self.transactions_tree.heading("Item", text="🛍️ Item 🛍️")
+        self.transactions_tree.heading("SKU", text="📦 SKU 📦")
+        self.transactions_tree.heading("Quantity Sold", text="🔢 Quantity Sold 🔢")
+        self.transactions_tree.heading("Total Cost", text="💰 Total Cost 💰")
+        self.transactions_tree.heading("Date", text="📅 Date 📅")
+
+        self.transactions_tree.pack(fill="both", expand=True, padx=20, pady=10)
+        tree_scroll.config(command=self.transactions_tree.yview)
+
+        # Insert data into the treeview
+        for transaction in transactions:
+            self.transactions_tree.insert("", "end", values=(
+                str(transaction.get("_id", "")),  # Convert ObjectId to string for display
+                transaction.get("customer_name", ""),  # Customer Name
+                transaction.get("item_name", ""),
+                transaction.get("item_sku", ""),
+                transaction.get("quantity_sold", ""),
+                f"${transaction.get('total_cost', 0):.2f}",
+                transaction.get("date", "")
+            ))
+
+        # Bind to show context menu for transactions
+        self.transactions_tree.bind("<Double-1>", self.show_transaction_context_menu)
+
+    def show_transaction_context_menu(self, event):
+        menu = Menu(self, tearoff=0)
+
+        item = self.transactions_tree.identify_row(event.y)
+        if item:
+            self.transactions_tree.selection_set(item)
+            selected_transaction = self.transactions_tree.item(item, "values")
+            transaction_id = selected_transaction[0]  # Transaction ID is now the first column
+            transaction = transactions_collection.find_one({"_id": ObjectId(transaction_id)})
+
+            # Add options to the context menu
+            menu.add_command(label="❌ Delete Transaction ❌", command=lambda: self.delete_transaction(transaction))
+
+            menu.post(event.x_root, event.y_root)
+
+    def delete_transaction(self, transaction):
+        confirm = messagebox.askyesno("🗑️ Confirm Delete 🗑️", f"Are you sure you want to delete this transaction?")
+        if confirm:
+            transactions_collection.delete_one({"_id": transaction["_id"]})
+            messagebox.showinfo("🗑️ Deleted 🗑️", f"Transaction deleted!")
+            self.manage_transactions_screen()
+
+
+    def manage_transactions_screen(self):
+        self.clear_widgets()
+
+        header = ctk.CTkLabel(self, text="💼 Manage Transactions 💼", font=("Arial", 36, "bold"), text_color="white")
+        header.pack(pady=20)
+
+        search_frame = ctk.CTkFrame(self, fg_color="#2C2F33", corner_radius=10)
+        search_frame.pack(pady=10, padx=20, fill="x")
+
+        search_entry = ctk.CTkEntry(search_frame, placeholder_text="🔍 Search by Item Name or Date 🔍", width=400)
+        search_entry.grid(row=0, column=0, padx=10, pady=10)
+        search_entry.bind("<KeyRelease>", self.search_transactions)
+
+        self.search_entry = search_entry
+
+        self.transactions_frame = ctk.CTkFrame(self, fg_color="#2C2F33", corner_radius=10)
+        self.transactions_frame.pack(pady=20, padx=20, fill="both", expand=True)
+
+        # Button for creating a new invoice
+        create_invoice_btn = ctk.CTkButton(self, text="📝 Create Invoice 📝", corner_radius=10, command=self.create_invoice_screen, width=200)
+        create_invoice_btn.pack(pady=10)
+
+        self.show_transactions_table(self.transactions_frame)
+
+        back_btn = ctk.CTkButton(self, text="🔙 Back to Home 🔙", corner_radius=10, command=self.setup_home_screen, width=200, height=40)
+        back_btn.pack(pady=10)
+    def create_invoice_screen(self):
+        self.clear_widgets()
+
+        header = ctk.CTkLabel(self, text="📝 Create New Invoice 📝", font=("Arial", 36, "bold"), text_color="white")
+        header.pack(pady=20)
+
+        # Dropdown for selecting customer from the list
+        customer_label = ctk.CTkLabel(self, text="👤 Select Customer 👤", font=("Arial", 16), text_color="white")
+        customer_label.pack(pady=10)
+
+        customer_list = [customer['name'] for customer in customers_collection.find()]
+        customer_selection = ctk.CTkComboBox(self, values=customer_list, width=300)
+        customer_selection.pack(pady=10)
+
+        # Dropdown for selecting items (can be enhanced to allow multiple item selection)
+        item_label = ctk.CTkLabel(self, text="🛍️ Select Item 🛍️", font=("Arial", 16), text_color="white")
+        item_label.pack(pady=10)
+
+        item_list = [item['product_name'] for item in items_collection.find()]
+        item_selection = ctk.CTkComboBox(self, values=item_list, width=300)
+        item_selection.pack(pady=10)
+
+        quantity_label = ctk.CTkLabel(self, text="🔢 Enter Quantity 🔢", font=("Arial", 16), text_color="white")
+        quantity_label.pack(pady=10)
+        quantity_entry = ctk.CTkEntry(self, width=300)
+        quantity_entry.pack(pady=10)
+
+        def confirm_transaction():
+            customer_name = customer_selection.get()
+            item_name = item_selection.get()
+            quantity = int(quantity_entry.get())
+
+            if not customer_name or not item_name or not quantity:
+                messagebox.showerror("❌ Error ❌", "Please select a customer, item, and quantity.")
+                return
+
+            # Fetch the selected item and customer from the database
+            item = items_collection.find_one({"product_name": item_name})
+            customer = customers_collection.find_one({"name": customer_name})
+
+            if item and customer:
+                if quantity > item['number_of_pcs']:
+                    messagebox.showerror("❌ Error ❌", "Insufficient stock.")
+                    return
+
+                # Deduct the quantity from the stock
+                new_stock = item['number_of_pcs'] - quantity
+                items_collection.update_one({"_id": item['_id']}, {"$set": {"number_of_pcs": new_stock}})
+
+                # Record the transaction in the transactions collection
+                transaction = {
+                    "customer_name": customer_name,
+                    "item_sku": item['sku'],
+                    "item_name": item_name,
+                    "quantity_sold": quantity,
+                    "unit_price": item['our_cost'],
+                    "total_cost": item['our_cost'] * quantity,
+                    "date": datetime.datetime.now()
+                }
+                transactions_collection.insert_one(transaction)
+
+                # Generate the invoice
+                self.generate_invoice(customer_name, item, quantity)
+                messagebox.showinfo("✅ Success ✅", "Transaction completed and invoice generated.")
+                self.manage_transactions_screen()
+            else:
+                messagebox.showerror("❌ Error ❌", "Invalid customer or item selection.")
+
+        # Confirm transaction button
+        confirm_btn = ctk.CTkButton(self, text="✔ Confirm Transaction ✔", corner_radius=10, command=confirm_transaction, width=200, height=40)
+        confirm_btn.pack(pady=10)
+
+        back_btn = ctk.CTkButton(self, text="🔙 Back to Transactions 🔙", corner_radius=10, command=self.manage_transactions_screen, width=200, height=40)
+        back_btn.pack(pady=10)
+
+    def generate_invoice(self, customer_name, item, quantity_sold):
+        invoice_date = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        total_cost = item['our_cost'] * quantity_sold
+
+        invoice_content = f"""
+        Inventory Management System
+        ==========================
+        
+        Invoice for Sale
+        Date: {invoice_date}
+
+        Customer: {customer_name}
+        
+        Sold Item:
+        ----------
+        Product Name: {item['product_name']}
+        SKU: {item['sku']}
+        Category: {item['category']}
+        Quantity Sold: {quantity_sold}
+        Unit Price: ${item['our_cost']:.2f}
+        Total Cost: ${total_cost:.2f}
+        
+        Thank you for your purchase!
+        ==========================
+        """
+
+        save_path = filedialog.asksaveasfilename(defaultextension=".txt", filetypes=[("Text files", "*.txt")])
+        if save_path:
+            if save_path.endswith('.txt'):
+                with open(save_path, 'w') as file:
+                    file.write(invoice_content)
+                messagebox.showinfo("✅ Success ✅", "Invoice generated successfully!")
+
+    def manage_items_screen(self):
+        self.clear_widgets()
+
+        header = ctk.CTkLabel(self, text="🛠 Manage Items 🛠", font=("Arial", 36, "bold"), text_color="white")
+        header.pack(pady=20)
+
+        add_item_btn = ctk.CTkButton(self, text="➕ Add New Item ➕", corner_radius=10, command=self.add_item_screen, width=200, height=40)
+        add_item_btn.pack(pady=10)
+        
+        add_quantity_btn = ctk.CTkButton(self, text="📦 Add Quantity 📦", corner_radius=10, command=self.add_quantity_screen, width=200, height=40)
+        add_quantity_btn.pack(pady=10)
+
+        back_btn = ctk.CTkButton(self, text="🔙 Back to Home 🔙", corner_radius=10, command=self.setup_home_screen, width=200, height=40)
+        back_btn.pack(pady=10)
 
     def setup_dashboard_screen(self):
         self.clear_widgets()
@@ -827,6 +1029,10 @@ class MainApp(ctk.CTk):
         search_entry.grid(row=0, column=0, padx=10, pady=10)
         search_entry.bind("<KeyRelease>", self.search_users)
 
+        # Add the Add User button to the screen
+        add_user_btn = ctk.CTkButton(search_frame, text="➕ Add User ➕", corner_radius=10, command=self.add_user_screen, width=200)
+        add_user_btn.grid(row=0, column=1, padx=10, pady=10)
+
         self.search_entry = search_entry
 
         self.user_frame = ctk.CTkFrame(self, fg_color="#2C2F33", corner_radius=10)
@@ -836,6 +1042,51 @@ class MainApp(ctk.CTk):
 
         back_btn = ctk.CTkButton(self, text="🔙 Back to Home 🔙", corner_radius=10, command=self.setup_home_screen, width=200, height=40)
         back_btn.pack(pady=10)
+
+    def add_user_screen(self):
+        self.clear_widgets()
+
+        header = ctk.CTkLabel(self, text="➕ Add New User ➕", font=("Arial", 36, "bold"), text_color="white")
+        header.pack(pady=20)
+
+        name_entry = ctk.CTkEntry(self, placeholder_text="👤 Name 👤", width=300)
+        name_entry.pack(pady=10)
+        
+        username_entry = ctk.CTkEntry(self, placeholder_text="👤 Username 👤", width=300)
+        username_entry.pack(pady=10)
+        
+        password_entry = ctk.CTkEntry(self, placeholder_text="🔑 Password 🔑", show="*", width=300)
+        password_entry.pack(pady=10)
+
+        # Add Role dropdown selection
+        role_label = ctk.CTkLabel(self, text="🔑 Role 🔑", font=("Arial", 16), text_color="white")
+        role_label.pack(pady=10)
+        
+        role_selection = ctk.CTkComboBox(self, values=["user", "admin"], width=300)
+        role_selection.set("user")  # Default to 'user'
+        role_selection.pack(pady=10)
+
+        # Save the user data with the role
+        def save_user():
+            name = name_entry.get()
+            username = username_entry.get()
+            password = password_entry.get()
+            role = role_selection.get()
+
+            if len(password) < 6:
+                messagebox.showerror("❌ Error ❌", "Password must be at least 6 characters long.")
+                return
+            if username and password and name and role:
+                self.register_user(username, password, name, role)  # Include role when registering user
+            else:
+                messagebox.showerror("❌ Error ❌", "All fields are required.")
+        
+        save_btn = ctk.CTkButton(self, text="💾 Save User 💾", corner_radius=10, command=save_user, width=200, height=40)
+        save_btn.pack(pady=10)
+        
+        back_btn = ctk.CTkButton(self, text="🔙 Back to Manage Users 🔙", corner_radius=10, command=self.manage_users_screen, width=200, height=40)
+        back_btn.pack(pady=10)
+
 
     def search_users(self, *args):
         search_query = self.search_entry.get()
@@ -899,35 +1150,6 @@ class MainApp(ctk.CTk):
         users_collection.delete_one({"username": user['username']})
         messagebox.showinfo("🗑️ Deleted 🗑️", f"User {user['username']} deleted!")
         self.manage_users_screen()
-
-    def generate_invoice(self, item, pieces_sold):
-        invoice_date = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        invoice_content = f"""
-        Inventory Management System
-        ==========================
-        
-        Invoice for Sale
-        Date: {invoice_date}
-        
-        Sold Item:
-        ----------
-        Product Name: {item['product_name']}
-        SKU: {item['sku']}
-        Category: {item['category']}
-        Quantity Sold: {pieces_sold}
-        Unit Price: ${item['our_cost']:.2f}
-        Total Cost: ${item['our_cost'] * pieces_sold:.2f}
-        
-        Thank you for your purchase!
-        ==========================
-        """
-        
-        save_path = filedialog.asksaveasfilename(defaultextension=".txt", filetypes=[("Text files", "*.txt")])
-        if save_path:
-            if save_path.endswith('.txt'):
-                with open(save_path, 'w') as file:
-                    file.write(invoice_content)
-                messagebox.showinfo("✅ Success ✅", "Invoice generated successfully!")
 
 
     def clear_widgets(self):
